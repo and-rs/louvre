@@ -4,12 +4,15 @@ use crate::articles::Article;
 
 pub fn articles(article: &Article) -> Markup {
     html! {
-        section {
-            h1 { "Articles" }
-            article {
-                p { (&article.published_at) }
-                h2 { a href=(format!("/articles/{}", article.slug)) { (&article.title) } }
-                p { (&article.description) }
+        section class="mx-auto max-w-3xl" {
+            div class="mb-8" {
+                h1 class="text-3xl font-bold tracking-tight" { "Articles" }
+                p class="mt-2 text-muted-foreground" { "Notes on building fast, effective websites." }
+            }
+            article class="rounded-lg border bg-card p-6 text-card-foreground shadow-sm" {
+                p class="text-sm text-muted-foreground" { (&article.published_at) }
+                h2 class="mt-2 text-xl font-semibold tracking-tight" { a class="hover:underline" href=(format!("/articles/{}", article.slug)) { (&article.title) } }
+                p class="mt-3 leading-7 text-muted-foreground" { (&article.description) }
             }
         }
     }
@@ -17,12 +20,14 @@ pub fn articles(article: &Article) -> Markup {
 
 pub fn article(article: &Article) -> Markup {
     html! {
-        article {
-            p { a href="/articles" { "<- All articles" } }
-            p { (&article.published_at) }
-            h1 { (&article.title) }
-            p { (&article.description) }
-            (&article.body)
+        article class="mx-auto max-w-3xl" {
+            p { a class="text-sm font-medium text-muted-foreground hover:text-foreground" href="/articles" { "<- All articles" } }
+            header class="mt-8 border-b pb-8" {
+                p class="text-sm text-muted-foreground" { (&article.published_at) }
+                h1 class="mt-2 text-4xl font-bold tracking-tight" { (&article.title) }
+                p class="mt-4 text-lg leading-8 text-muted-foreground" { (&article.description) }
+            }
+            div class="mt-8 leading-7 [&_a]:text-primary [&_a]:underline [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-semibold [&_p]:mt-4" { (&article.body) }
         }
     }
 }

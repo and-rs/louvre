@@ -4,20 +4,20 @@ const SPA_PATH: &str = "m4.447 290.28c0.13184 1.3988 0.74128 2.2328 1.7024 3.099
 
 pub fn home() -> Markup {
     html! {
-        div class="mx-auto flex max-w-xl flex-col gap-12 p-2" {
-            header class="flex flex-col gap-3" {
+        div class="mx-auto flex max-w-4xl flex-col gap-12" {
+            header class="flex max-w-2xl flex-col gap-4" {
                 div class="flex items-center gap-3" {
-                    img src="/static/iridium.png" alt="Iridium logo" width="48" height="48" data-logo;
-                    h1 class="text-3xl font-bold" { "Iridium" }
+                    img class="size-16 rounded-lg" src="/static/iridium.png" alt="Iridium logo" width="64" height="64" data-logo;
+                    h1 class="text-3xl font-bold tracking-tight" { "Iridium" }
                 }
-                p class="text-xl" { "High-performance websites & tools built to win more business." }
+                p class="text-xl text-muted-foreground" { "High-performance websites & tools built to win more business." }
             }
-            div class="grid grid-cols-1 gap-12 md:grid-cols-2" {
-                div class="flex flex-col gap-8" {
+            div class="grid gap-8 lg:grid-cols-2" {
+                div class="flex flex-col gap-6 rounded-lg border bg-card p-6 text-card-foreground shadow-sm" {
                     (spa())
-                    p class="text-lg" { a href="/work" class="underline" { "Get a website that sells →" } }
+                    p { a href="/work" class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" { "Get a website that sells" } }
                 }
-                (performance_metrics())
+                div class="rounded-lg border bg-card p-6 text-card-foreground shadow-sm" { (performance_metrics()) }
             }
         }
     }
@@ -25,18 +25,18 @@ pub fn home() -> Markup {
 
 fn spa() -> Markup {
     html! {
-        div class="flex flex-col gap-4" data-spa {
-            svg class="block h-auto w-full" viewBox="-10 -10 521.68 340.48" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Circuit of Spa-Francorchamps, Belgium" {
-                path id="spa-motion-path" d=(SPA_PATH) fill="none" stroke="black" stroke-width="6" {}
-                path d=(SPA_PATH) fill="none" stroke="green" stroke-width="6" opacity="0" data-spa-trace-one {}
-                path d=(SPA_PATH) fill="none" stroke="green" stroke-width="6" opacity="0" data-spa-trace-two {}
-                g data-spa-car opacity="0" {
-                    polygon points="0,-8 14,0 0,8" fill="green" stroke="green" stroke-width="2" {}
+        div class="flex flex-col gap-5" data-spa {
+            svg class="block h-auto w-full text-muted-foreground" viewBox="-10 -10 521.68 340.48" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Circuit of Spa-Francorchamps, Belgium" {
+                path id="spa-motion-path" d=(SPA_PATH) fill="none" stroke="currentColor" stroke-width="6" {}
+                path class="text-chart-2" d=(SPA_PATH) fill="none" stroke="currentColor" stroke-width="6" opacity="0" data-spa-trace-one {}
+                path class="text-chart-2" d=(SPA_PATH) fill="none" stroke="currentColor" stroke-width="6" opacity="0" data-spa-trace-two {}
+                g class="text-chart-2" data-spa-car opacity="0" {
+                    polygon points="0,-8 14,0 0,8" fill="currentColor" stroke="currentColor" stroke-width="2" {}
                 }
             }
-            div class="flex flex-col gap-3" {
-                p class="font-bold" { "Circuit of Spa-Francorchamps, Belgium" }
-                p { "A great website does more than look good. It builds trust, makes your offer clear, and turns visits into enquiries." }
+            div class="flex flex-col gap-2" {
+                p class="font-medium" { "Circuit of Spa-Francorchamps, Belgium" }
+                p class="text-sm leading-6 text-muted-foreground" { "A great website does more than look good. It builds trust, makes your offer clear, and turns visits into enquiries." }
             }
         }
     }
@@ -45,11 +45,11 @@ fn spa() -> Markup {
 fn performance_metrics() -> Markup {
     html! {
         div class="flex flex-col gap-6" data-performance-metrics {
-            div class="flex flex-col gap-3" {
-                h2 class="text-2xl font-bold" { "Speed That Keeps Customers Moving" }
-                p { "A slow website loses attention. We build fast so more visitors reach out." }
+            div class="flex flex-col gap-2" {
+                h2 class="text-xl font-semibold tracking-tight" { "Speed That Keeps Customers Moving" }
+                p class="text-sm leading-6 text-muted-foreground" { "A slow website loses attention. We build fast so more visitors reach out." }
             }
-            dl class="flex flex-col gap-6" {
+            dl class="grid gap-3 sm:grid-cols-2" {
                 (metric("TTFB", "Time to First Byte", "Server responsiveness"))
                 (metric("DOM_READY", "DOM Ready", "Document structure parsed"))
                 (metric("FP", "First Paint", "Visual feedback started"))
@@ -63,10 +63,10 @@ fn performance_metrics() -> Markup {
 
 fn metric(key: &str, label: &str, description: &str) -> Markup {
     html! {
-        div class="flex flex-col gap-1" data-metric=(key) {
-            dt class="font-bold" { (label) }
-            dd class="text-sm" { (description) }
-            dd class="font-mono text-xl" data-metric-value { "..." }
+        div class="rounded-md border bg-muted/40 p-4" data-metric=(key) {
+            dt class="text-sm font-medium" { (label) }
+            dd class="mt-1 text-xs text-muted-foreground" { (description) }
+            dd class="mt-3 font-mono text-lg font-semibold tabular-nums" data-metric-value { "..." }
         }
     }
 }

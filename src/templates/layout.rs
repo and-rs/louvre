@@ -1,5 +1,7 @@
 use axum::response::Html;
-use maud::{DOCTYPE, Markup, html};
+use maud::{DOCTYPE, Markup, PreEscaped, html};
+
+use super::theme_toggle;
 
 pub fn page(title: &str, description: &str, content: Markup) -> Html<String> {
     let document = html! {
@@ -9,32 +11,36 @@ pub fn page(title: &str, description: &str, content: Markup) -> Html<String> {
                 meta charset="utf-8";
                 meta name="viewport" content="width=device-width, initial-scale=1";
                 meta name="description" content=(description);
+                script { (PreEscaped("(function(){var theme=localStorage.getItem('theme');var dark=theme==='dark'||(!theme&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',dark);document.documentElement.style.colorScheme=dark?'dark':'light'})()")) }
                 title { (title) " | Rust Site" }
                 link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png";
                 link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png";
                 link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png";
                 link rel="icon" href="/static/favicon/favicon.ico";
                 link rel="manifest" href="/static/favicon/site.webmanifest";
+                link rel="preconnect" href="https://fonts.googleapis.com";
+                link rel="preconnect" href="https://fonts.gstatic.com" crossorigin;
+                link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Recursive:CASL,MONO,slnt,wght@0,0,0,300..1000;0,1,0,300..1000;1,0,0,300..1000;1,1,0,300..1000&display=swap";
                 link rel="stylesheet" href="/static/css/site.css";
             }
-            body {
-                header {
-                    nav aria-label="Main navigation" {
-                        a href="/" { "Home" }
-                        " | "
-                        a href="/work" { "Work" }
-                        " | "
-                        a href="/articles" { "Articles" }
+            body class="min-h-screen antialiased" {
+                header class="border-b" {
+                    nav class="mx-auto flex max-w-5xl items-center gap-1 px-4 py-3" aria-label="Main navigation" {
+                        a class="mr-auto text-sm font-semibold tracking-tight" href="/" { "Iridium" }
+                        a class="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground" href="/work" { "Work" }
+                        a class="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground" href="/articles" { "Articles" }
+                        (theme_toggle())
                     }
                 }
-                main class="mx-auto my-4 max-w-800px" { (content) }
-                footer {
-                    p { "Researching the future of performance." }
-                    p { "Copyright (c) 2026 Iridium. All Rights Reserved." }
-                    p {
-                        a href="https://www.linkedin.com/company/iridium-tech" target="_blank" rel="noreferrer" { "LinkedIn" }
-                        " | "
-                        a href="https://www.github.com/and-rs/iridium" target="_blank" rel="noreferrer" { "GitHub" }
+                main class="mx-auto w-full max-w-5xl px-4 py-10 sm:py-16" { (content) }
+                footer class="border-t" {
+                    div class="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between" {
+                        p { "Researching the future of performance." }
+                        p { "Copyright (c) 2026 Iridium. All Rights Reserved." }
+                        p class="flex gap-4" {
+                            a class="transition-colors hover:text-foreground" href="https://www.linkedin.com/company/iridium-tech" target="_blank" rel="noreferrer" { "LinkedIn" }
+                            a class="transition-colors hover:text-foreground" href="https://www.github.com/and-rs/iridium" target="_blank" rel="noreferrer" { "GitHub" }
+                        }
                     }
                 }
                 script src="/static/js/anime.min.js" defer {};
