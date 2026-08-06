@@ -1,4 +1,4 @@
-let activeAnimation
+let activeAnimations = []
 
 function initPerformanceMetrics() {
   const panel = document.querySelector("[data-performance-metrics]")
@@ -71,23 +71,96 @@ function initPerformanceMetrics() {
   }
 }
 
-function initOrbitDemo() {
-  const demo = document.querySelector("[data-orbit-demo]")
-  const node = demo?.querySelector("[data-orbit-node]")
-  if (!node || node.dataset.initialized) return
+function initSpaAnimation() {
+  const spa = document.querySelector("[data-spa]")
+  const traceOne = spa?.querySelector("[data-spa-trace-one]")
+  const traceTwo = spa?.querySelector("[data-spa-trace-two]")
+  const car = spa?.querySelector("[data-spa-car]")
+  if (!spa || !traceOne || !traceTwo || !car || spa.dataset.initialized) return
 
-  node.dataset.initialized = "true"
-  activeAnimation = window.anime.animate(node, {
-    rotate: "1turn",
-    transformOrigin: "50% 104px",
-    duration: 2800,
-    ease: "linear",
-    loop: true,
+  spa.dataset.initialized = "true"
+  const trail = 0.1
+  const cycle = 4000
+  const phase = cycle / (1 + trail)
+  const entry = trail * phase
+  const transit = (1 - trail) * phase
+  const [firstTrace] = window.anime.svg.createDrawable(traceOne)
+  const [secondTrace] = window.anime.svg.createDrawable(traceTwo)
+  const motion = window.anime.svg.createMotionPath(traceOne)
+
+  activeAnimations.push(
+    window.anime.animate([traceOne, traceTwo, car], {
+      opacity: [0, 1],
+      duration: 1000,
+      delay: 200,
+      ease: "inOutCirc",
+    }),
+  )
+  activeAnimations.push(
+    window.anime
+      .createTimeline({
+        loop: true,
+        duration: cycle * 2,
+        defaults: { ease: "linear" },
+      })
+      .label("first", 0)
+      .label("second", cycle)
+      .add(
+        firstTrace,
+        { draw: [`0 0`, `0 ${trail}`], duration: entry },
+        "first",
+      )
+      .add(
+        firstTrace,
+        { draw: [`0 ${trail}`, `${1 - trail} 1`], duration: transit },
+        entry,
+      )
+      .add(
+        firstTrace,
+        { draw: [`${1 - trail} 1`, "1 1"], duration: entry },
+        "second",
+      )
+      .add(
+        secondTrace,
+        { draw: [`0 0`, `0 ${trail}`], duration: entry },
+        "second",
+      )
+      .add(
+        secondTrace,
+        { draw: [`0 ${trail}`, `${1 - trail} 1`], duration: transit },
+        cycle + entry,
+      )
+      .add(
+        secondTrace,
+        { draw: [`${1 - trail} 1`, "1 1"], duration: entry },
+        "first",
+      )
+      .add(car, { ...motion, duration: cycle }, "first")
+      .add(car, { ...motion, duration: cycle }, "second"),
+  )
+}
+
+function initLogoAnimation() {
+  const logo = document.querySelector("[data-logo]")
+  if (!logo || logo.dataset.initialized) return
+
+  logo.dataset.initialized = "true"
+  let rotations = 0
+  logo.addEventListener("click", () => {
+    rotations += 1
+    activeAnimations.push(
+      window.anime.animate(logo, {
+        rotate: rotations * 360,
+        duration: 1500,
+        ease: "out(4)",
+      }),
+    )
   })
 }
 
 function initializePage() {
-  initOrbitDemo()
+  initSpaAnimation()
+  initLogoAnimation()
   initPerformanceMetrics()
 }
 
@@ -98,6 +171,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.addEventListener("mu:after-render", initializePage)
 document.addEventListener("mu:before-render", () => {
-  activeAnimation?.cancel()
-  activeAnimation = undefined
+  for (const animation of activeAnimations) animation.cancel()
+  activeAnimations = []
 })

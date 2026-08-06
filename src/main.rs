@@ -1,12 +1,11 @@
 mod articles;
 mod routes;
 mod templates;
-
-use std::{net::SocketAddr, sync::Arc};
-
 use axum::{Router, routing::get};
+use std::{net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
 use tower_http::{services::ServeDir, trace::TraceLayer};
+
 #[cfg(feature = "dev")]
 use tower_livereload::LiveReloadLayer;
 

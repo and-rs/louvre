@@ -1,21 +1,46 @@
 use maud::{Markup, html};
 
+const SPA_PATH: &str = "m4.447 290.28c0.13184 1.3988 0.74128 2.2328 1.7024 3.099 3.1469 2.8362 3.8732 2.3848 55.153-34.244 9.0175-6.4412 22.107-15.77 29.088-20.731 6.9814-4.9613 16.982-12.298 22.221-16.304 11.174-8.5434 12.382-8.6379 13.16-1.0174 0.54917 5.3802 2.4784 8.4052 5.1728 8.1124 2.8403-0.30871 42.138-7.3767 46.568-8.3756 7.9514-1.7928 19.679-6.7943 48.071-20.501 32.219-15.554 31.603-15.443 51.861-9.2555 43.482 13.281 49.67 17.893 74.11 55.221 24.907 38.042 51.388 59.761 81.957 67.22 23.646 5.77 29.868 2.9279 43.646-19.937 14.583-24.2 13.956-28.601-5.4188-38.008-42.141-20.461-41.397-19.922-42.514-30.746-0.47537-4.6053-0.14507-6.2471 1.9454-9.6576 5.1232-8.3583 5.3844-15.657 0.83218-23.295-4.202-7.0498-5.1079-7.4255-46.575-19.273-57.071-16.305-61.474-19.592-63.138-47.139-1.3409-22.191 2.522-26.753 28.962-34.216 38.939-10.991 52.214-15.463 71.271-24.002 27.146-12.163 25.84-12.368 39.668 6.2288 15.126 20.343 27.926 24.049 33.803 9.784 3.2206-7.8173 2.0733-9.7848-23.497-40.265-33.33-39.73-30.5-38.063-52.21-30.777-16.833 5.6483-18.917 5.4528-25.042-2.3521-3.4734-4.4259-7.0086-5.9408-12.528-5.3669-3.732 0.38809-9.7271 2.6943-72.638 27.956-113.06 45.398-110.63 44.288-129.17 59.016-30.773 24.434-45.366 34.512-52.808 36.471-17.988 4.7355-24.603 9.4903-30.154 21.676-3.8076 8.3581-9.6687 15.229-32.851 38.511-32.393 32.533-39.987 43.72-53.2 78.344-5.6978 14.931-7.7238 20.746-7.4337 23.823z";
+
 pub fn home() -> Markup {
     html! {
-        h1 { "Rust site baseline" }
-        p { "Server-rendered HTML, Markdown, µJS navigation, and browser JavaScript." }
-        p { a href="/articles" { "Read the sample article" } " | " a href="#animation" { "See animation" } }
-        section id="animation" data-orbit-demo {
-            h2 { "Anime.js" }
-            svg viewBox="0 0 240 240" width="240" height="240" {
-                circle cx="120" cy="120" r="90" fill="none" stroke="currentColor" {}
-                circle cx="120" cy="120" r="10" fill="currentColor" {}
-                rect x="112" y="20" width="16" height="16" data-orbit-node {}
+        section {
+            header {
+                div {
+                    img src="/static/iridium.png" alt="Iridium logo" width="96" height="96" data-logo;
+                    h1 { "Iridium" }
+                }
+                p { "High-performance websites built to win more business." }
             }
-            p { "This runs after a normal page load and µJS navigation." }
+            div {
+                (spa())
+                p { a href="/work" { "Get a website that sells ->" } }
+                (performance_metrics())
+            }
         }
+    }
+}
+
+fn spa() -> Markup {
+    html! {
+        section data-spa {
+            svg viewBox="-10 -10 521.68 340.48" width="522" height="341" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Circuit of Spa-Francorchamps, Belgium" {
+                path d=(SPA_PATH) fill="none" stroke="currentColor" stroke-width="6" opacity="0.45";
+                path d=(SPA_PATH) fill="none" stroke="currentColor" stroke-width="6" opacity="0" data-spa-trace-one {};
+                path d=(SPA_PATH) fill="none" stroke="currentColor" stroke-width="6" opacity="0" data-spa-trace-two {};
+                g opacity="0" data-spa-car { polygon points="11,0 -11,-11 -11,11" fill="currentColor"; }
+            }
+            p { "Circuit of Spa-Francorchamps, Belgium." }
+            p { "A great website does more than look good. It builds trust, makes your offer clear, and turns visits into enquiries." }
+        }
+    }
+}
+
+fn performance_metrics() -> Markup {
+    html! {
         section data-performance-metrics {
-            h2 { "Browser performance" }
+            h2 { "Speed That Keeps Customers Moving" }
+            p { "A slow website loses attention. We build fast so more visitors reach out." }
             dl {
                 (metric("TTFB", "Time to First Byte", "Server responsiveness"))
                 (metric("DOM_READY", "DOM Ready", "Document structure parsed"))

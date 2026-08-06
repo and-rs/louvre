@@ -1,12 +1,10 @@
-use std::sync::Arc;
-
+use crate::{articles::Article, templates};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
     response::{Html, IntoResponse, Response},
 };
-
-use crate::{articles::Article, templates};
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct AppState {
