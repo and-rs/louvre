@@ -1,5 +1,5 @@
 /target
-/static/css/site.css
+/src/static/css/site.css
 .direnv/
 .env
 result

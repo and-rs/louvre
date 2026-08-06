@@ -25,8 +25,8 @@ pass_filenames = false
 id = "biome"
 name = "biome"
 language = "system"
-entry = "biome check static/js/site.js static/css/input.css"
-files = "^(static/js/site\\.js|static/css/input\\.css)$"
+entry = "biome check src/static/js/site.js src/static/css/input.css"
+files = "^(src/static/js/site\\.js|src/static/css/input\\.css)$"
 pass_filenames = false
 
 [[repos.hooks]]

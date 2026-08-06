@@ -24,8 +24,9 @@ just run
 ```
 
 Open <http://127.0.0.1:3000>. Rust, Markdown, Tailwind input, and local
-browser-JavaScript changes all reload the page. `direnv allow` activates the
-Nix shell automatically when entering this directory.
+browser-JavaScript changes all reload the page. `src/templates` contains Maud
+markup, while `src/static` contains browser assets. `direnv allow` activates
+the Nix shell automatically when entering this directory.
 
 ## Quality
 
