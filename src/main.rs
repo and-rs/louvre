@@ -82,36 +82,21 @@ async fn home() -> Html<String> {
         "Rust Site Baseline",
         "A server-rendered proof of concept.",
         html! {
-            section class="grid gap-6 lg:grid-cols-[1.2fr_.8fr]" {
-                div class="space-y-5" {
-                    p class="font-mono text-sm tracking-wide text-cyan-300" { "AXUM / MAUD / TAILWIND" }
-                    h1 class="max-w-3xl text-5xl font-semibold tracking-tight text-white sm:text-7xl" {
-                        "Server HTML. "
-                        span class="text-cyan-300" { "No hydration." }
-                    }
-                    p class="max-w-xl text-lg leading-8 text-slate-300" {
-                        "This is a deliberately small baseline for testing Rust-rendered pages, progressive navigation, Markdown articles, and imperative animation."
-                    }
-                    div class="flex flex-wrap gap-3" {
-                        a class="button button-primary" href="/articles" { "Read the sample article" }
-                        a class="button" href="#animation" { "See animation" }
-                    }
+            h1 { "Rust site baseline" }
+            p { "Server-rendered HTML, Markdown, µJS navigation, and browser JavaScript." }
+            p { a href="/articles" { "Read the sample article" } " | " a href="#animation" { "See animation" } }
+            section id="animation" data-orbit-demo {
+                h2 { "Anime.js" }
+                svg viewBox="0 0 240 240" width="240" height="240" {
+                    circle cx="120" cy="120" r="90" fill="none" stroke="currentColor" {}
+                    circle cx="120" cy="120" r="10" fill="currentColor" {}
+                    rect x="112" y="20" width="16" height="16" data-orbit-node {}
                 }
-                section id="animation" class="panel grid min-h-80 place-items-center overflow-hidden" data-orbit-demo {
-                    div class="relative size-52" {
-                        div class="absolute inset-0 rounded-full border border-cyan-300/30" {}
-                        div class="absolute left-1/2 top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-300 shadow-[0_0_40px_rgba(103,232,249,.75)]" {}
-                        div class="absolute left-1/2 top-0 size-6 -translate-x-1/2 rounded-sm bg-violet-400" data-orbit-node {}
-                    }
-                    p class="col-span-full text-sm text-slate-400" { "Anime.js is initialized after full and µJS navigation." }
-                }
+                p { "This runs after a normal page load and µJS navigation." }
             }
-            section class="panel mt-6" data-performance-metrics {
-                div class="mb-5 flex items-baseline justify-between gap-4 border-b border-slate-800 pb-4" {
-                    h2 class="text-xl font-semibold text-white" { "Browser performance" }
-                    span class="font-mono text-xs text-slate-500" { "THIS PAGE" }
-                }
-                div class="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3" {
+            section data-performance-metrics {
+                h2 { "Browser performance" }
+                dl {
                     (metric("TTFB", "Time to First Byte", "Server responsiveness"))
                     (metric("DOM_READY", "DOM Ready", "Document structure parsed"))
                     (metric("FP", "First Paint", "Visual feedback started"))
@@ -130,15 +115,12 @@ async fn articles(State(state): State<Arc<AppState>>) -> Html<String> {
         "Articles",
         "Markdown rendered by Rust.",
         html! {
-            section class="space-y-6" {
-                div class="space-y-2" {
-                    p class="font-mono text-sm tracking-wide text-cyan-300" { "ARTICLES" }
-                    h1 class="text-5xl font-semibold tracking-tight text-white" { "Writing from the server." }
-                }
-                a class="panel block space-y-3 transition hover:-translate-y-1 hover:border-cyan-300/70" href=(format!("/articles/{}", article.slug)) {
-                    p class="font-mono text-sm text-slate-400" { (&article.published_at) }
-                    h2 class="text-2xl font-semibold text-white" { (&article.title) }
-                    p class="text-slate-300" { (&article.description) }
+            section {
+                h1 { "Articles" }
+                article {
+                    p { (&article.published_at) }
+                    h2 { a href=(format!("/articles/{}", article.slug)) { (&article.title) } }
+                    p { (&article.description) }
                 }
             }
         },
@@ -155,11 +137,11 @@ async fn article_page(Path(slug): Path<String>, State(state): State<Arc<AppState
         &article.title,
         &article.description,
         html! {
-            article class="prose prose-invert max-w-3xl" {
-                a class="font-mono text-sm text-cyan-300 hover:text-cyan-100" href="/articles" { "<- All articles" }
-                p class="mt-8 font-mono text-sm text-slate-400" { (&article.published_at) }
+            article {
+                p { a href="/articles" { "<- All articles" } }
+                p { (&article.published_at) }
                 h1 { (&article.title) }
-                p class="lead" { (&article.description) }
+                p { (&article.description) }
                 (maud::PreEscaped(&article.html))
             }
         },
@@ -174,10 +156,10 @@ async fn not_found() -> Response {
             "Not found",
             "The requested page does not exist.",
             html! {
-                section class="panel max-w-xl space-y-4" {
-                    p class="font-mono text-sm text-cyan-300" { "404" }
-                    h1 class="text-4xl font-semibold text-white" { "That page does not exist." }
-                    a class="button button-primary" href="/" { "Return home" }
+                section {
+                    h1 { "404" }
+                    p { "That page does not exist." }
+                    p { a href="/" { "Return home" } }
                 }
             },
         ),
@@ -188,7 +170,7 @@ async fn not_found() -> Response {
 fn page(title: &str, description: &str, content: Markup) -> Html<String> {
     let document = html! {
         (DOCTYPE)
-        html lang="en" class="bg-slate-950" {
+        html lang="en" {
             head {
                 meta charset="utf-8";
                 meta name="viewport" content="width=device-width, initial-scale=1";
@@ -196,18 +178,16 @@ fn page(title: &str, description: &str, content: Markup) -> Html<String> {
                 title { (title) " | Rust Site" }
                 link rel="stylesheet" href="/static/css/site.css";
             }
-            body class="min-h-screen bg-slate-950 text-slate-100 antialiased" {
-                header class="border-b border-slate-800" {
-                    nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-5" aria-label="Main navigation" {
-                        a class="font-mono text-sm font-bold tracking-widest text-cyan-300" href="/" { "RUST SITE" }
-                        div class="flex gap-5 text-sm text-slate-300" {
-                            a class="hover:text-cyan-300" href="/" { "Home" }
-                            a class="hover:text-cyan-300" href="/articles" { "Articles" }
-                        }
+            body {
+                header {
+                    nav aria-label="Main navigation" {
+                        a href="/" { "Rust site" }
+                        " | "
+                        a href="/articles" { "Articles" }
                     }
                 }
-                main class="mx-auto max-w-6xl px-6 py-16" { (content) }
-                footer class="mx-auto max-w-6xl px-6 pb-10 text-sm text-slate-500" {
+                main { (content) }
+                footer {
                     "Axum + Maud + Tailwind + µJS + Anime.js"
                 }
                 script src="/static/js/anime.min.js" defer {};
@@ -222,10 +202,10 @@ fn page(title: &str, description: &str, content: Markup) -> Html<String> {
 
 fn metric(key: &str, label: &str, description: &str) -> Markup {
     html! {
-        div class="border-b border-slate-800 pb-3" data-metric=(key) {
-            p class="font-medium text-slate-100" { (label) }
-            p class="text-sm text-slate-400" { (description) }
-            p class="mt-2 font-mono text-2xl text-cyan-300" data-metric-value { "..." }
+        div data-metric=(key) {
+            dt { (label) }
+            dd { (description) }
+            dd data-metric-value { "..." }
         }
     }
 }
