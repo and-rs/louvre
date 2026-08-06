@@ -5,7 +5,8 @@ WORKDIR /app
 COPY src/static/css/input.css src/static/css/input.css
 COPY src/templates src/templates
 
-RUN npx --yes @tailwindcss/cli@4.1.18 \
+RUN npm install --no-save @tailwindcss/cli@4.3.3 tailwindcss@4.3.3 \
+    && npx tailwindcss \
     -i src/static/css/input.css \
     -o src/static/css/site.css \
     --minify
