@@ -27,7 +27,7 @@ pub fn page(title: &str, description: &str, content: Markup) -> Html<String> {
                         a href="/articles" { "Articles" }
                     }
                 }
-                main { (content) }
+                main class="max-w-800px mx-auto my-4" { (content) }
                 footer {
                     p { "Researching the future of performance." }
                     p { "Copyright (c) 2026 Iridium. All Rights Reserved." }

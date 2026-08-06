@@ -19,7 +19,7 @@
               clippy
               rustc
               rustfmt
-              tailwindcss
+              tailwindcss_4
               just
               biome
               prek

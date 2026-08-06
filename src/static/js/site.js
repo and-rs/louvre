@@ -75,21 +75,39 @@ function initSpaAnimation() {
   const spa = document.querySelector("[data-spa]")
   const traceOne = spa?.querySelector("[data-spa-trace-one]")
   const traceTwo = spa?.querySelector("[data-spa-trace-two]")
+  const motionPath = spa?.querySelector("#spa-motion-path")
   const car = spa?.querySelector("[data-spa-car]")
-  if (!spa || !traceOne || !traceTwo || !car || spa.dataset.initialized) return
+  if (
+    !spa ||
+    !traceOne ||
+    !traceTwo ||
+    !motionPath ||
+    !car ||
+    spa.dataset.initialized
+  )
+    return
 
   spa.dataset.initialized = "true"
   const trail = 0.1
-  const cycle = 4000
-  const phase = cycle / (1 + trail)
+  const totalLife = 4000
+  const phase = totalLife / (1 + trail)
   const entry = trail * phase
   const transit = (1 - trail) * phase
   const [firstTrace] = window.anime.svg.createDrawable(traceOne)
   const [secondTrace] = window.anime.svg.createDrawable(traceTwo)
-  const motion = window.anime.svg.createMotionPath(traceOne)
+
+  const motion = window.anime.svg.createMotionPath(motionPath)
 
   activeAnimations.push(
-    window.anime.animate([traceOne, traceTwo, car], {
+    window.anime.animate([traceOne, traceTwo], {
+      opacity: [0, 1],
+      duration: 1000,
+      delay: 200,
+      ease: "inOutCirc",
+    }),
+  )
+  activeAnimations.push(
+    window.anime.animate(car, {
       opacity: [0, 1],
       duration: 1000,
       delay: 200,
@@ -100,11 +118,11 @@ function initSpaAnimation() {
     window.anime
       .createTimeline({
         loop: true,
-        duration: cycle * 2,
+        duration: phase * 2,
         defaults: { ease: "linear" },
       })
       .label("first", 0)
-      .label("second", cycle)
+      .label("second", phase)
       .add(
         firstTrace,
         { draw: [`0 0`, `0 ${trail}`], duration: entry },
@@ -128,15 +146,15 @@ function initSpaAnimation() {
       .add(
         secondTrace,
         { draw: [`0 ${trail}`, `${1 - trail} 1`], duration: transit },
-        cycle + entry,
+        phase + entry,
       )
       .add(
         secondTrace,
         { draw: [`${1 - trail} 1`, "1 1"], duration: entry },
         "first",
       )
-      .add(car, { ...motion, duration: cycle }, "first")
-      .add(car, { ...motion, duration: cycle }, "second"),
+      .add(car, { ...motion, duration: phase }, "first")
+      .add(car, { ...motion, duration: phase }, "second"),
   )
 }
 

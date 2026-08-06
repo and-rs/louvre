@@ -1,8 +1,5 @@
 run:
-    @bash -c 'tailwindcss -i src/static/css/input.css -o src/static/css/site.css --watch & css_pid=$!; trap "kill $$css_pid" EXIT INT TERM; cargo watch -w src -w content -x "run --features dev"'
-
-css:
-    tailwindcss -i src/static/css/input.css -o src/static/css/site.css --minify
+    @bash -c 'cargo watch -w src -w content -s "cd /home/and-rs/Vault/dev/rust-site && tailwindcss -i src/static/css/input.css -o src/static/css/site.css && cargo run --features dev"'
 
 format:
     cargo fmt
@@ -10,12 +7,13 @@ format:
 
 check:
     cargo fmt --check
-    biome check src/static/js/site.js src/static/css/input.css
+    biome check src/static/js/site.js
     cargo clippy --all-targets --all-features -- -D warnings
     cargo test --all-features
 
 hooks:
     prek install
 
-build: css
+build:
+    tailwindcss -i src/static/css/input.css -o src/static/css/site.css
     cargo build --release

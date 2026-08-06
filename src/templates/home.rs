@@ -4,17 +4,19 @@ const SPA_PATH: &str = "m4.447 290.28c0.13184 1.3988 0.74128 2.2328 1.7024 3.099
 
 pub fn home() -> Markup {
     html! {
-        section {
-            header {
-                div {
-                    img src="/static/iridium.png" alt="Iridium logo" width="96" height="96" data-logo;
-                    h1 { "Iridium" }
+        div class="flex flex-col gap-12 max-w-xl border border-2 border-cyan-500 mx-auto" {
+            header class="flex flex-col gap-3" {
+                div class="flex items-center gap-3" {
+                    img src="/static/iridium.png" alt="Iridium logo" width="48" height="48" data-logo;
+                    h1 class="text-3xl font-bold" { "Iridium" }
                 }
-                p { "High-performance websites built to win more business." }
+                p class="text-xl" { "High-performance websites & tools built to win more business." }
             }
-            div {
-                (spa())
-                p { a href="/work" { "Get a website that sells ->" } }
+            div class="grid grid-cols-1 md:grid-cols-2 gap-12" {
+                div class="flex flex-col gap-8" {
+                    (spa())
+                    p class="text-lg" { a href="/work" class="underline" { "Get a website that sells →" } }
+                }
                 (performance_metrics())
             }
         }
@@ -23,25 +25,31 @@ pub fn home() -> Markup {
 
 fn spa() -> Markup {
     html! {
-        section data-spa {
-            svg viewBox="-10 -10 521.68 340.48" width="522" height="341" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Circuit of Spa-Francorchamps, Belgium" {
-                path d=(SPA_PATH) fill="none" stroke="currentColor" stroke-width="6" opacity="0.45";
-                path d=(SPA_PATH) fill="none" stroke="currentColor" stroke-width="6" opacity="0" data-spa-trace-one {};
-                path d=(SPA_PATH) fill="none" stroke="currentColor" stroke-width="6" opacity="0" data-spa-trace-two {};
-                g opacity="0" data-spa-car { polygon points="11,0 -11,-11 -11,11" fill="currentColor"; }
+        div class="flex flex-col gap-4" data-spa {
+            svg class="block w-full h-auto" viewBox="-10 -10 521.68 340.48" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Circuit of Spa-Francorchamps, Belgium" {
+                path id="spa-motion-path" d=(SPA_PATH) fill="none" stroke="black" stroke-width="6" {}
+                path d=(SPA_PATH) fill="none" stroke="green" stroke-width="6" opacity="0" data-spa-trace-one {}
+                path d=(SPA_PATH) fill="none" stroke="green" stroke-width="6" opacity="0" data-spa-trace-two {}
+                g data-spa-car opacity="0" {
+                    polygon points="0,-8 14,0 0,8" fill="green" stroke="green" stroke-width="2" {}
+                }
             }
-            p { "Circuit of Spa-Francorchamps, Belgium." }
-            p { "A great website does more than look good. It builds trust, makes your offer clear, and turns visits into enquiries." }
+            div class="flex flex-col gap-3" {
+                p class="font-bold" { "Circuit of Spa-Francorchamps, Belgium" }
+                p { "A great website does more than look good. It builds trust, makes your offer clear, and turns visits into enquiries." }
+            }
         }
     }
 }
 
 fn performance_metrics() -> Markup {
     html! {
-        section data-performance-metrics {
-            h2 { "Speed That Keeps Customers Moving" }
-            p { "A slow website loses attention. We build fast so more visitors reach out." }
-            dl {
+        div class="flex flex-col gap-6" data-performance-metrics {
+            div class="flex flex-col gap-3" {
+                h2 class="text-2xl font-bold" { "Speed That Keeps Customers Moving" }
+                p { "A slow website loses attention. We build fast so more visitors reach out." }
+            }
+            dl class="flex flex-col gap-6" {
                 (metric("TTFB", "Time to First Byte", "Server responsiveness"))
                 (metric("DOM_READY", "DOM Ready", "Document structure parsed"))
                 (metric("FP", "First Paint", "Visual feedback started"))
@@ -55,10 +63,10 @@ fn performance_metrics() -> Markup {
 
 fn metric(key: &str, label: &str, description: &str) -> Markup {
     html! {
-        div data-metric=(key) {
-            dt { (label) }
-            dd { (description) }
-            dd data-metric-value { "..." }
+        div class="flex flex-col gap-1" data-metric=(key) {
+            dt class="font-bold" { (label) }
+            dd class="text-sm" { (description) }
+            dd class="font-mono text-xl" data-metric-value { "..." }
         }
     }
 }
