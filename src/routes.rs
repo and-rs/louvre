@@ -19,6 +19,14 @@ pub async fn home() -> Html<String> {
     )
 }
 
+pub async fn work() -> Html<String> {
+    templates::page(
+        "Work",
+        "Selected products, developer tools, and automation by and-rs.",
+        templates::work(),
+    )
+}
+
 pub async fn articles(State(state): State<Arc<AppState>>) -> Html<String> {
     templates::page(
         "Articles",

@@ -25,6 +25,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(routes::home))
+        .route("/work", get(routes::work))
         .route("/articles", get(routes::articles))
         .route("/articles/{slug}", get(routes::article_page))
         .route("/health", get(|| async { StatusCode::OK }))
