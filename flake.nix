@@ -17,8 +17,10 @@
               cargo
               cargo-watch
               clippy
+              rust-analyzer
               rustc
               rustfmt
+              rustywind
               tailwindcss_4
               just
               biome

@@ -30,6 +30,14 @@ files = "^src/static/js/site\\.js$"
 pass_filenames = false
 
 [[repos.hooks]]
+id = "rustywind"
+name = "rustywind"
+language = "system"
+entry = "sh -c 'tailwindcss -i src/static/css/input.css -o src/static/css/site.css && rustywind --check-formatted --output-css-file src/static/css/site.css src/templates'"
+files = "^src/templates/.*\\.rs$"
+pass_filenames = false
+
+[[repos.hooks]]
 id = "cargo-clippy"
 name = "cargo clippy"
 language = "system"

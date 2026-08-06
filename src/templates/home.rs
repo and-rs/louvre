@@ -4,7 +4,7 @@ const SPA_PATH: &str = "m4.447 290.28c0.13184 1.3988 0.74128 2.2328 1.7024 3.099
 
 pub fn home() -> Markup {
     html! {
-        div class="flex flex-col gap-12 max-w-xl border border-2 border-cyan-500 mx-auto" {
+        div class="mx-auto flex max-w-xl flex-col gap-12 p-2" {
             header class="flex flex-col gap-3" {
                 div class="flex items-center gap-3" {
                     img src="/static/iridium.png" alt="Iridium logo" width="48" height="48" data-logo;
@@ -12,7 +12,7 @@ pub fn home() -> Markup {
                 }
                 p class="text-xl" { "High-performance websites & tools built to win more business." }
             }
-            div class="grid grid-cols-1 md:grid-cols-2 gap-12" {
+            div class="grid grid-cols-1 gap-12 md:grid-cols-2" {
                 div class="flex flex-col gap-8" {
                     (spa())
                     p class="text-lg" { a href="/work" class="underline" { "Get a website that sells →" } }
@@ -26,7 +26,7 @@ pub fn home() -> Markup {
 fn spa() -> Markup {
     html! {
         div class="flex flex-col gap-4" data-spa {
-            svg class="block w-full h-auto" viewBox="-10 -10 521.68 340.48" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Circuit of Spa-Francorchamps, Belgium" {
+            svg class="block h-auto w-full" viewBox="-10 -10 521.68 340.48" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Circuit of Spa-Francorchamps, Belgium" {
                 path id="spa-motion-path" d=(SPA_PATH) fill="none" stroke="black" stroke-width="6" {}
                 path d=(SPA_PATH) fill="none" stroke="green" stroke-width="6" opacity="0" data-spa-trace-one {}
                 path d=(SPA_PATH) fill="none" stroke="green" stroke-width="6" opacity="0" data-spa-trace-two {}
