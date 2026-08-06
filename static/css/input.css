@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@source "../../src/**/*.rs";
+
+@utility panel {
+  @apply rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-2xl shadow-slate-950/30;
+}
+
+@utility button {
+  @apply inline-flex items-center justify-center rounded-md border border-slate-700 px-4 py-2 font-medium transition hover:border-cyan-300 hover:text-cyan-200;
+}
+
+@utility button-primary {
+  @apply border-cyan-300 bg-cyan-300 text-slate-950 hover:bg-cyan-200 hover:text-slate-950;
+}
+
+@utility prose {
+  @apply text-slate-300;
+
+  h1 {
+    @apply mt-6 text-5xl font-semibold tracking-tight text-white;
+  }
+  h2 {
+    @apply mt-10 text-2xl font-semibold text-white;
+  }
+  p {
+    @apply mt-5 text-lg leading-8;
+  }
+  ul {
+    @apply mt-5 list-disc space-y-2 pl-6;
+  }
+  pre {
+    @apply mt-6 overflow-x-auto rounded-lg border border-slate-800 bg-slate-950 p-4 text-sm;
+  }
+  code {
+    @apply font-mono text-cyan-200;
+  }
+  .lead {
+    @apply text-xl text-slate-400;
+  }
+}

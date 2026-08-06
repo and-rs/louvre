@@ -1,0 +1,5 @@
+/target
+/static/css/site.css
+.direnv/
+.env
+result

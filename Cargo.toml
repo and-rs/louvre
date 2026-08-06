@@ -1,0 +1,20 @@
+[package]
+name = "rust_site"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+dev = ["dep:tower-livereload"]
+
+[dependencies]
+axum = "0.8"
+maud = "0.27"
+pulldown-cmark = "0.13"
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tower-http = { version = "0.6", features = ["fs", "trace"] }
+tower-livereload = { version = "0.10", optional = true }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
