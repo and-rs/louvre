@@ -1,7 +1,7 @@
 mod articles;
 mod routes;
 mod templates;
-use axum::{Router, routing::get};
+use axum::{Router, http::StatusCode, routing::get};
 use std::{net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
 use tower_http::{services::ServeDir, trace::TraceLayer};
@@ -27,6 +27,7 @@ async fn main() {
         .route("/", get(routes::home))
         .route("/articles", get(routes::articles))
         .route("/articles/{slug}", get(routes::article_page))
+        .route("/health", get(|| async { StatusCode::OK }))
         .fallback(routes::not_found)
         .nest_service("/static", ServeDir::new("src/static"))
         .layer(TraceLayer::new_for_http())
@@ -35,7 +36,11 @@ async fn main() {
     #[cfg(feature = "dev")]
     let app = app.layer(LiveReloadLayer::new());
 
-    let address = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let port = std::env::var("PORT")
+        .ok()
+        .and_then(|port| port.parse().ok())
+        .unwrap_or(3000);
+    let address = SocketAddr::from(([0, 0, 0, 0], port));
     let listener = TcpListener::bind(address)
         .await
         .expect("local port 3000 must be available");

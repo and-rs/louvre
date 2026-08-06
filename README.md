@@ -48,3 +48,10 @@ just build
 
 This writes minified CSS and compiles a release binary without development live
 reload middleware.
+
+## Deployment
+
+Railway deploys automatically when the connected GitHub branch receives a
+commit. `railway.json` selects the included multi-stage `Dockerfile`, which
+generates minified Tailwind CSS and builds the release binary. The server binds
+to Railway's injected `PORT` and exposes `/health` for zero-downtime deploys.
