@@ -1,5 +1,11 @@
 run:
-    @cargo watch -w src -w content -s 'tailwindcss -i src/static/css/input.css -o src/static/css/site.css && rustywind --write --output-css-file src/static/css/site.css src/templates && cargo run --features dev'
+    #!/usr/bin/env bash
+    tailwindcss -i src/static/css/input.css -o src/static/css/site.css --silent
+    tailwindcss -i src/static/css/input.css -o src/static/css/site.css --watch --silent &
+    tailwind=$!
+    trap 'kill "$tailwind" 2>/dev/null' EXIT INT TERM
+    cargo watch -d 0.2 -w src -w content -i src/static/css/site.css \
+        -s "rustywind --write --output-css-file src/static/css/site.css src/templates && cargo run --features dev"
 
 format:
     cargo fmt

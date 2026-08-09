@@ -9,7 +9,7 @@ pub fn home() -> Markup {
         div class="mx-auto flex max-w-4xl flex-col gap-12" {
             header class="flex max-w-2xl flex-col gap-4" {
                 div class="flex items-center gap-3" {
-                    img class="size-16 rounded-lg" src="/static/iridium.png" alt="Iridium logo" width="64" height="64" data-logo;
+                    img class="size-24 rounded-lg" src="/static/iridium.png" alt="Iridium logo" width="78" height="78" data-logo;
                     h1 class="site-title" { "Iridium" }
                 }
                 p class="text-xl text-muted-foreground" { "High-performance websites & tools built to win more business." }

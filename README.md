@@ -17,18 +17,19 @@ Enter the reproducible development shell:
 nix develop
 ```
 
-Then start the server, which rebuilds Tailwind and sorts Maud utility classes on
-each reload:
+Then start the development watchers:
 
 ```bash
 just run
 ```
 
-Open <http://127.0.0.1:3000>. Rust, Markdown, Tailwind input, and local
-browser-JavaScript changes all reload the page. `rustywind` derives its class
-order from the generated Tailwind CSS, keeping Maud markup in `src/templates`
-consistently ordered. `src/static` contains browser assets. `direnv allow`
-activates the Nix shell automatically when entering this directory.
+Open <http://127.0.0.1:3000>. Tailwind watches its sources independently, and
+the server watcher ignores generated CSS so CSS rebuilds do not restart Rust.
+Before each Rust restart, `rustywind` sorts Maud utility classes using the
+current generated stylesheet. Rust, Markdown, Tailwind input, and local
+browser-JavaScript changes still reload the page. `src/static` contains browser
+assets. `direnv allow` activates the Nix shell automatically when entering this
+directory.
 
 ## Quality
 

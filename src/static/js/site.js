@@ -37,6 +37,15 @@ function initThemeToggle() {
   })
 }
 
+function updateHomeLink(url = window.location.href) {
+  const homeLink = document.querySelector("[data-home-link]")
+  if (!homeLink) return
+
+  const isHome = new URL(url, window.location.origin).pathname === "/"
+  homeLink.classList.toggle("opacity-0", isHome)
+  homeLink.classList.toggle("pointer-events-none", isHome)
+}
+
 themeMediaQuery.addEventListener("change", () => {
   if (currentTheme() === "system") applyTheme("system")
 })
@@ -218,6 +227,7 @@ function initLogoAnimation() {
 }
 
 function initializePage() {
+  updateHomeLink()
   initThemeToggle()
   initSpaAnimation()
   initLogoAnimation()
@@ -229,7 +239,13 @@ document.addEventListener("DOMContentLoaded", () => {
   initializePage()
 })
 
-document.addEventListener("mu:after-render", initializePage)
+document.addEventListener("mu:after-render", (event) => {
+  requestAnimationFrame(() => {
+    updateHomeLink(event.detail.finalUrl)
+    initializePage()
+  })
+})
+window.addEventListener("popstate", updateHomeLink)
 document.addEventListener("mu:before-render", () => {
   for (const animation of activeAnimations) animation.cancel()
   activeAnimations = []
