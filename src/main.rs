@@ -1,4 +1,5 @@
 mod articles;
+mod assets;
 mod routes;
 mod templates;
 use axum::{Router, http::StatusCode, routing::get};

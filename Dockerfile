@@ -15,7 +15,7 @@ FROM rust:1.85-bookworm AS builder
 
 WORKDIR /app
 
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml Cargo.lock build.rs ./
 COPY content content
 COPY src src
 COPY --from=css /app/src/static/css/site.css src/static/css/site.css
