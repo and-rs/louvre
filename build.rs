@@ -21,21 +21,21 @@ const ASSETS: &[(&str, &str)] = &[
 ];
 
 fn main() {
+    println!("cargo:rerun-if-env-changed=CARGO_FEATURE_DEV");
+    let development = env::var_os("CARGO_FEATURE_DEV").is_some();
     let mut output = String::new();
 
     for (name, path) in ASSETS {
         println!("cargo:rerun-if-changed={path}");
-        let bytes = fs::read(path).expect("static asset must exist");
-        let mut hasher = std::hash::DefaultHasher::new();
-        bytes.hash(&mut hasher);
-        let url = format!(
-            "/static/{}?v={:x}",
-            Path::new(path)
-                .strip_prefix("src/static/")
-                .unwrap()
-                .display(),
-            hasher.finish()
-        );
+        let asset_path = Path::new(path).strip_prefix("src/static/").unwrap();
+        let url = if development {
+            format!("/static/{}", asset_path.display())
+        } else {
+            let bytes = fs::read(path).expect("static asset must exist");
+            let mut hasher = std::hash::DefaultHasher::new();
+            bytes.hash(&mut hasher);
+            format!("/static/{}?v={:x}", asset_path.display(), hasher.finish())
+        };
         output.push_str(&format!("pub const {name}: &str = \"{url}\";\n"));
     }
 

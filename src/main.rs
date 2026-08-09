@@ -8,6 +8,12 @@ use tokio::net::TcpListener;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 
 #[cfg(feature = "dev")]
+use axum::http::{HeaderValue, header::CACHE_CONTROL};
+#[cfg(feature = "dev")]
+use tower::ServiceBuilder;
+#[cfg(feature = "dev")]
+use tower_http::set_header::SetResponseHeaderLayer;
+#[cfg(feature = "dev")]
 use tower_livereload::LiveReloadLayer;
 
 use crate::{articles::parse_article, routes::AppState};
@@ -24,6 +30,15 @@ async fn main() {
         .expect("embedded article must have valid frontmatter");
     let state = Arc::new(AppState { article });
 
+    let static_files = ServeDir::new("src/static");
+    #[cfg(feature = "dev")]
+    let static_files = ServiceBuilder::new()
+        .layer(SetResponseHeaderLayer::overriding(
+            CACHE_CONTROL,
+            HeaderValue::from_static("no-store"),
+        ))
+        .service(static_files);
+
     let app = Router::new()
         .route("/", get(routes::home))
         .route("/work", get(routes::work))
@@ -31,7 +46,7 @@ async fn main() {
         .route("/articles/{slug}", get(routes::article_page))
         .route("/health", get(|| async { StatusCode::OK }))
         .fallback(routes::not_found)
-        .nest_service("/static", ServeDir::new("src/static"))
+        .nest_service("/static", static_files)
         .layer(TraceLayer::new_for_http())
         .with_state(state);
 

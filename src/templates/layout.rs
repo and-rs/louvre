@@ -23,7 +23,7 @@ pub fn page(title: &str, description: &str, is_home: bool, content: Markup) -> H
                 link rel="preconnect" href="https://fonts.googleapis.com";
                 link rel="preconnect" href="https://fonts.gstatic.com" crossorigin;
                 link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Recursive:CASL,MONO,slnt,wght@0,0,0,300..1000;0,1,0,300..1000;1,0,0,300..1000;1,1,0,300..1000&display=swap";
-                link rel="stylesheet" href=(assets::SITE_CSS);
+                link rel="stylesheet" href=(assets::SITE_CSS) data-site-stylesheet data-source=(assets::SITE_CSS);
             }
             body class="min-h-screen pt-20 antialiased sm:pt-24" {
                 header class="fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:pt-4" {
@@ -51,6 +51,9 @@ pub fn page(title: &str, description: &str, is_home: bool, content: Markup) -> H
                 script src=(assets::ANIME_JS) defer {};
                 script src=(assets::MU_JS) defer {};
                 script src=(assets::SITE_JS) defer {};
+                @if cfg!(feature = "dev") {
+                    script src="/static/js/dev.js" defer {};
+                }
             }
         }
     };

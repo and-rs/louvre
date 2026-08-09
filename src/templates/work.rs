@@ -62,7 +62,7 @@ pub fn work() -> Markup {
 
 fn project_card(project: &Project) -> Markup {
     html! {
-        article class="flex min-h-60 flex-col rounded-lg border bg-card p-6 text-card-foreground shadow-sm transition-colors group" {
+        article class="flex min-h-60 flex-col gap-4 rounded-lg border bg-card p-6 text-card-foreground shadow-sm transition-colors group" {
             div class="flex items-start justify-between gap-4" {
                 div {
                     p class="text-sm text-muted-foreground" { (project.kind) }
@@ -72,13 +72,13 @@ fn project_card(project: &Project) -> Markup {
                     (badge("Live", BadgeVariant::Secondary))
                 }
             }
-            p class="mt-4 leading-7 text-muted-foreground" { (project.description) }
-            div class="mt-4 flex flex-wrap gap-2" {
+            div class="flex flex-wrap gap-2" {
                 @for item in project.stack {
                     span class="font-mono" { (badge(item, BadgeVariant::Outline)) }
                 }
             }
-            div class="mt-auto flex gap-4 text-sm font-medium" {
+            p class="leading-7 text-muted-foreground" { (project.description) }
+            div class="flex gap-4 text-sm font-medium" {
                 (external_button_link("Repository", project.repository, ButtonVariant::Link, ButtonSize::Small))
                 @if let Some(url) = project.live_url {
                     (external_button_link("Visit site", url, ButtonVariant::Link, ButtonSize::Small))
