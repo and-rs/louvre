@@ -21,22 +21,6 @@ const PROJECTS: &[Project] = &[
         live_url: Some("https://edge.baut.dev"),
     },
     Project {
-        name: "nvim",
-        kind: "Developer tooling",
-        description: "A fast Neovim configuration built around a minimal, responsive editing workflow.",
-        stack: &["Zig", "Neovim", "Performance"],
-        repository: "https://github.com/and-rs/nvim",
-        live_url: None,
-    },
-    Project {
-        name: "dotfiles",
-        kind: "Personal platform",
-        description: "A reproducible desktop environment that brings system, shell, and application configuration into one place.",
-        stack: &["Nix", "QML", "Linux"],
-        repository: "https://github.com/and-rs/dotfiles",
-        live_url: None,
-    },
-    Project {
         name: "wisp",
         kind: "AI tooling",
         description: "A terminal-native AI harness focused on a direct, programmable command-line workflow.",
@@ -59,10 +43,10 @@ pub fn work() -> Markup {
         section class="mx-auto max-w-4xl" {
             header class="max-w-2xl" {
                 p class="text-sm font-medium text-muted-foreground" { "Selected work" }
-                h1 class="mt-2 text-4xl font-bold tracking-tight sm:text-5xl" { "Things built to be used." }
+                h1 class="mt-2 page-title" { "Things built to be used." }
                 p class="mt-4 text-lg leading-8 text-muted-foreground" { "Products, developer tools, and systems with an emphasis on speed, clarity, and staying useful over time." }
             }
-            div class="mt-10 grid gap-4 md:grid-cols-2" {
+            div class="mt-10 flex flex-col gap-4" {
                 @for project in PROJECTS {
                     (project_card(project))
                 }
@@ -78,7 +62,7 @@ pub fn work() -> Markup {
 
 fn project_card(project: &Project) -> Markup {
     html! {
-        article class="flex min-h-64 flex-col rounded-lg border bg-card p-6 text-card-foreground shadow-sm transition-colors group hover:bg-accent" {
+        article class="flex min-h-60 flex-col rounded-lg border bg-card p-6 text-card-foreground shadow-sm transition-colors group hover:bg-accent" {
             div class="flex items-start justify-between gap-4" {
                 div {
                     p class="text-sm text-muted-foreground" { (project.kind) }
@@ -89,12 +73,12 @@ fn project_card(project: &Project) -> Markup {
                 }
             }
             p class="mt-4 leading-7 text-muted-foreground" { (project.description) }
-            div class="mt-5 flex flex-wrap gap-2" {
+            div class="mt-4 flex flex-wrap gap-2" {
                 @for item in project.stack {
                     span class="font-mono" { (badge(item, BadgeVariant::Outline)) }
                 }
             }
-            div class="mt-auto flex gap-4 pt-6 text-sm font-medium" {
+            div class="mt-auto flex gap-4 text-sm font-medium" {
                 a class="transition-colors hover:text-muted-foreground" href=(project.repository) target="_blank" rel="noreferrer" { "Repository" }
                 @if let Some(url) = project.live_url {
                     a class="transition-colors hover:text-muted-foreground" href=(url) target="_blank" rel="noreferrer" { "Visit site" }

@@ -8,7 +8,7 @@ pub fn home() -> Markup {
             header class="flex max-w-2xl flex-col gap-4" {
                 div class="flex items-center gap-3" {
                     img class="size-16 rounded-lg" src="/static/iridium.png" alt="Iridium logo" width="64" height="64" data-logo;
-                    h1 class="text-3xl font-bold tracking-tight" { "Iridium" }
+                    h1 class="site-title" { "Iridium" }
                 }
                 p class="text-xl text-muted-foreground" { "High-performance websites & tools built to win more business." }
             }
@@ -26,12 +26,13 @@ pub fn home() -> Markup {
 fn spa() -> Markup {
     html! {
         div class="flex flex-col gap-5" data-spa {
-            svg class="block h-auto w-full text-muted-foreground" viewBox="-10 -10 521.68 340.48" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Circuit of Spa-Francorchamps, Belgium" {
-                path id="spa-motion-path" d=(SPA_PATH) fill="none" stroke="currentColor" stroke-width="6" {}
-                path class="text-chart-2" d=(SPA_PATH) fill="none" stroke="currentColor" stroke-width="6" opacity="0" data-spa-trace-one {}
-                path class="text-chart-2" d=(SPA_PATH) fill="none" stroke="currentColor" stroke-width="6" opacity="0" data-spa-trace-two {}
-                g class="text-chart-2" data-spa-car opacity="0" {
-                    polygon points="0,-8 14,0 0,8" fill="currentColor" stroke="currentColor" stroke-width="2" {}
+            svg class="block h-auto w-full" viewBox="-10 -10 521.68 340.48" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Circuit of Spa-Francorchamps, Belgium" {
+                path class="fill-none stroke-muted [stroke-width:6]" id="spa-motion-path" d=(SPA_PATH) {}
+                path class="fill-none stroke-chart-2 [stroke-width:6]" d=(SPA_PATH) opacity="0" data-spa-trace-one {}
+                path class="fill-none stroke-chart-2 [stroke-width:6]" d=(SPA_PATH) opacity="0" data-spa-trace-two {}
+
+                g data-spa-car opacity="0" {
+                    polygon class="fill-chart-2 stroke-chart-2 [stroke-width:2]" points="0,-8 14,0 0,8" {}
                 }
             }
             div class="flex flex-col gap-2" {
