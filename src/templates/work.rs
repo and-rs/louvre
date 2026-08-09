@@ -1,6 +1,6 @@
 use maud::{Markup, html};
 
-use super::{BadgeVariant, badge};
+use super::{BadgeVariant, ButtonSize, ButtonVariant, badge, external_button_link};
 
 struct Project {
     name: &'static str,
@@ -53,7 +53,7 @@ pub fn work() -> Markup {
             }
             p class="mt-8 text-sm text-muted-foreground" {
                 "More experiments and open-source work live on "
-                a class="font-medium text-foreground underline underline-offset-4" href="https://github.com/and-rs" target="_blank" rel="noreferrer" { "GitHub" }
+                (external_button_link("GitHub", "https://github.com/and-rs", ButtonVariant::Link, ButtonSize::Small))
                 "."
             }
         }
@@ -62,7 +62,7 @@ pub fn work() -> Markup {
 
 fn project_card(project: &Project) -> Markup {
     html! {
-        article class="flex min-h-60 flex-col rounded-lg border bg-card p-6 text-card-foreground shadow-sm transition-colors group hover:bg-accent" {
+        article class="flex min-h-60 flex-col rounded-lg border bg-card p-6 text-card-foreground shadow-sm transition-colors group" {
             div class="flex items-start justify-between gap-4" {
                 div {
                     p class="text-sm text-muted-foreground" { (project.kind) }
@@ -79,9 +79,9 @@ fn project_card(project: &Project) -> Markup {
                 }
             }
             div class="mt-auto flex gap-4 text-sm font-medium" {
-                a class="transition-colors hover:text-muted-foreground" href=(project.repository) target="_blank" rel="noreferrer" { "Repository" }
+                (external_button_link("Repository", project.repository, ButtonVariant::Link, ButtonSize::Small))
                 @if let Some(url) = project.live_url {
-                    a class="transition-colors hover:text-muted-foreground" href=(url) target="_blank" rel="noreferrer" { "Visit site" }
+                    (external_button_link("Visit site", url, ButtonVariant::Link, ButtonSize::Small))
                 }
             }
         }
