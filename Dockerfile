@@ -12,7 +12,7 @@ RUN npm install --no-save @tailwindcss/cli@4.3.3 tailwindcss@4.3.3 \
     --minify \
     && node -e "const z=require('zlib'),f=require('fs');f.writeFileSync('src/static/css/site.css.br',z.brotliCompressSync(f.readFileSync('src/static/css/site.css'),{params:{[z.constants.BROTLI_PARAM_QUALITY]:11}}))"
 
-FROM rust:1.85-bookworm AS builder
+FROM rust:1.94-bookworm AS builder
 
 WORKDIR /app
 
