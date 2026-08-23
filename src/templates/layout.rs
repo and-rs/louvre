@@ -20,9 +20,6 @@ pub fn page(title: &str, description: &str, is_home: bool, content: Markup) -> H
                 link rel="icon" type="image/png" sizes="16x16" href=(assets::FAVICON_16);
                 link rel="icon" href=(assets::FAVICON_ICO);
                 link rel="manifest" href=(assets::FAVICON_MANIFEST);
-                link rel="preconnect" href="https://fonts.googleapis.com";
-                link rel="preconnect" href="https://fonts.gstatic.com" crossorigin;
-                link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Recursive:CASL,MONO,slnt,wght@0,0,0,300..1000;0,1,0,300..1000;1,0,0,300..1000;1,1,0,300..1000&display=swap";
                 link rel="stylesheet" href=(assets::SITE_CSS) data-site-stylesheet data-source=(assets::SITE_CSS);
             }
             body class="min-h-screen pt-20 antialiased sm:pt-24" {

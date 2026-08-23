@@ -22,6 +22,7 @@
               rustfmt
               rustywind
               tailwindcss_4
+              brotli
               just
               biome
               prek

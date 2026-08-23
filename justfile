@@ -16,10 +16,19 @@ format:
 check:
     cargo fmt --check
     tailwindcss -i src/static/css/input.css -o src/static/css/site.css
+    just compress
     rustywind --check-formatted --output-css-file src/static/css/site.css src/templates
     biome check src/static/js/dev.js src/static/js/site.js
     cargo clippy --all-targets --all-features -- -D warnings
     cargo test --all-features
+
+compress:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for f in src/static/css/site.css src/static/js/site.js src/static/js/mu.min.js; do
+        brotli -q 11 -f "$f" -o "$f.br"
+        printf '%s: %s -> %s\n' "$f" "$(du -h "$f" | cut -f1)" "$(du -h "$f.br" | cut -f1)"
+    done
 
 hooks:
     prek install
@@ -30,4 +39,5 @@ icon name:
 build:
     tailwindcss -i src/static/css/input.css -o src/static/css/site.css
     rustywind --write --output-css-file src/static/css/site.css src/templates
+    just compress
     cargo build --release

@@ -29,6 +29,8 @@ async fn main() {
             HeaderValue::from_static("no-store"),
         ))
         .service(static_files);
+    #[cfg(not(feature = "dev"))]
+    let static_files = static_files.precompressed_br();
 
     let app = Router::new()
         .route("/", get(routes::home))
