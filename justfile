@@ -24,6 +24,9 @@ check:
 hooks:
     prek install
 
+icon name:
+    ./scripts/icon.sh {{name}}
+
 build:
     tailwindcss -i src/static/css/input.css -o src/static/css/site.css
     rustywind --write --output-css-file src/static/css/site.css src/templates

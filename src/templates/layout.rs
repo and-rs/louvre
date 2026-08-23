@@ -13,7 +13,7 @@ pub fn page(title: &str, description: &str, is_home: bool, content: Markup) -> H
                 meta charset="utf-8";
                 meta name="viewport" content="width=device-width, initial-scale=1";
                 meta name="description" content=(description);
-                script { (PreEscaped("(function(){var theme=localStorage.getItem('theme');var dark=theme==='dark'||(!theme&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',dark);document.documentElement.style.colorScheme=dark?'dark':'light'})()")) }
+                script { (PreEscaped("(function(){var theme=localStorage.getItem('theme')||'system';var dark=theme==='dark'||(theme==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',dark);document.documentElement.style.colorScheme=dark?'dark':'light';document.documentElement.dataset.theme=theme})()")) }
                 title { (title) " | Sanarte" }
                 link rel="apple-touch-icon" sizes="180x180" href=(assets::APPLE_TOUCH_ICON);
                 link rel="icon" type="image/png" sizes="32x32" href=(assets::FAVICON_32);

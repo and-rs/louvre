@@ -9,6 +9,7 @@ function applyTheme(theme) {
     theme === "dark" || (theme === "system" && themeMediaQuery.matches)
   document.documentElement.classList.toggle("dark", dark)
   document.documentElement.style.colorScheme = dark ? "dark" : "light"
+  document.documentElement.dataset.theme = theme
 
   const toggle = document.querySelector("[data-theme-toggle]")
   if (!toggle) return
@@ -16,8 +17,6 @@ function applyTheme(theme) {
   const label = `${theme[0].toUpperCase()}${theme.slice(1)} theme. Switch theme.`
   toggle.setAttribute("aria-label", label)
   toggle.setAttribute("title", label)
-  toggle.querySelector("[data-theme-label]").textContent =
-    theme[0].toUpperCase() + theme.slice(1)
 }
 
 function initThemeToggle() {

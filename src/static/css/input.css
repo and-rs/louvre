@@ -2,7 +2,7 @@
 @import "tailwindcss/preflight" layer(base);
 @import "tailwindcss/utilities" layer(utilities);
 
-@source "../../templates/*.rs";
+@source "../../templates/**/*.rs";
 
 @theme inline {
   --font-sans: "Recursive", sans-serif;
@@ -143,4 +143,14 @@
   .font-mono {
     font-variation-settings: "MONO" 1;
   }
+}
+
+[data-theme-icon] {
+  display: none;
+}
+
+html[data-theme="light"] [data-theme-icon="light"],
+html[data-theme="dark"] [data-theme-icon="dark"],
+html[data-theme="system"] [data-theme-icon="system"] {
+  display: inline-flex;
 }

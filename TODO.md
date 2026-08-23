@@ -2,12 +2,12 @@
 
 ## 1. Phosphor Icons
 
-- Use Phosphor Icons, not Lucide.
-- Store reusable icon Maud components in `src/templates/components/icons/` and re-export them through `src/templates/components/icons/mod.rs`.
-- Icons must follow the SVG rules in `AGENTS.md`: Tailwind-only paint and stroke-width utilities with semantic shadcn tokens.
-- Add a `just icon <name>` intake command backed by a small script.
-- The script should download a chosen Phosphor SVG weight, convert its SVG elements to Maud markup, remove conflicting paint attributes, and create the component file.
-- Start with the icons needed for the footer and external links: GitHub, LinkedIn, ArrowUpRight, Envelope, and ArrowRight.
+- [x] Use Phosphor Icons, not Lucide.
+- [x] Store reusable icon Maud components in `src/templates/components/icons/` and re-export them through `src/templates/components/icons/mod.rs`.
+- [x] Icons must follow the SVG rules in `AGENTS.md`: Tailwind-only paint and stroke-width utilities with semantic shadcn tokens.
+- [x] Add a `just icon <name>` intake command backed by a small script.
+- [x] The script should download a chosen Phosphor SVG weight, convert its SVG elements to Maud markup, remove conflicting paint attributes, and create the component file.
+- [x] Start with the icons needed for the footer and external links: GitHub, LinkedIn, ArrowUpRight, Envelope, and ArrowRight.
 
 ## 2. Footer
 
