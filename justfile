@@ -1,5 +1,9 @@
 run:
     #!/usr/bin/env bash
+    if [[ -f .secrets/sanarte-app-creds.json ]]; then
+        export AWS_ACCESS_KEY_ID=$(awk -F'"' '/"AccessKeyId"/{print $4; exit}' .secrets/sanarte-app-creds.json)
+        export AWS_SECRET_ACCESS_KEY=$(awk -F'"' '/"SecretAccessKey"/{print $4; exit}' .secrets/sanarte-app-creds.json)
+    fi
     tailwindcss -i src/static/css/input.css -o src/static/css/site.css --silent
     tailwindcss -i src/static/css/input.css -o src/static/css/site.css --watch --silent &
     tailwind=$!
@@ -35,6 +39,24 @@ hooks:
 
 icon name:
     ./scripts/icon.sh {{name}}
+
+check-auth:
+    aws sts get-caller-identity
+
+infra-bootstrap:
+    ./scripts/bootstrap-state.sh
+
+infra-init:
+    terraform -chdir=infra init
+
+infra-plan:
+    terraform -chdir=infra plan
+
+infra-deploy:
+    terraform -chdir=infra apply
+
+infra-destroy:
+    terraform -chdir=infra destroy
 
 build:
     tailwindcss -i src/static/css/input.css -o src/static/css/site.css
