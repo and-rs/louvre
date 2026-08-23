@@ -9,6 +9,7 @@ pub enum BadgeVariant {
     Ghost,
 }
 
+#[allow(dead_code)]
 pub fn badge(label: &str, variant: BadgeVariant) -> Markup {
     let variant_class = match variant {
         BadgeVariant::Default => {

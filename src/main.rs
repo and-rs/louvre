@@ -1,9 +1,8 @@
-mod articles;
 mod assets;
 mod routes;
 mod templates;
 use axum::{Router, http::StatusCode, routing::get};
-use std::{net::SocketAddr, sync::Arc};
+use std::net::SocketAddr;
 use tokio::net::TcpListener;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 
@@ -16,19 +15,11 @@ use tower_http::set_header::SetResponseHeaderLayer;
 #[cfg(feature = "dev")]
 use tower_livereload::LiveReloadLayer;
 
-use crate::{articles::parse_article, routes::AppState};
-
-const ARTICLE_SOURCE: &str = include_str!("../content/articles/faster-by-default.md");
-
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .init();
-
-    let article = parse_article("faster-by-default", ARTICLE_SOURCE)
-        .expect("embedded article must have valid frontmatter");
-    let state = Arc::new(AppState { article });
 
     let static_files = ServeDir::new("src/static");
     #[cfg(feature = "dev")]
@@ -41,14 +32,10 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(routes::home))
-        .route("/work", get(routes::work))
-        .route("/articles", get(routes::articles))
-        .route("/articles/{slug}", get(routes::article_page))
         .route("/health", get(|| async { StatusCode::OK }))
         .fallback(routes::not_found)
         .nest_service("/static", static_files)
-        .layer(TraceLayer::new_for_http())
-        .with_state(state);
+        .layer(TraceLayer::new_for_http());
 
     #[cfg(feature = "dev")]
     let app = app.layer(LiveReloadLayer::new());

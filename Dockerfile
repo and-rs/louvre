@@ -26,9 +26,9 @@ FROM debian:bookworm-slim
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/rust_site /usr/local/bin/rust_site
+COPY --from=builder /app/target/release/sanarte /usr/local/bin/sanarte
 COPY --from=builder /app/src/static src/static
 
 ENV RUST_LOG=info
 
-CMD ["rust_site"]
+CMD ["sanarte"]

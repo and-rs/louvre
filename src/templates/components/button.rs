@@ -9,6 +9,7 @@ pub enum ButtonVariant {
     Destructive,
 }
 
+#[allow(dead_code)]
 pub enum ButtonSize {
     Small,
     Default,
@@ -19,6 +20,7 @@ pub fn button_link(label: &str, href: &str, variant: ButtonVariant, size: Button
     button_link_with_target(label, href, variant, size, false)
 }
 
+#[allow(dead_code)]
 pub fn external_button_link(
     label: &str,
     href: &str,

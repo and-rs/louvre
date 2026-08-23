@@ -1,13 +1,11 @@
-# Rust Site Baseline
+# Sanarte
 
-A small integration proof of concept for a server-rendered marketing site.
+A small server-rendered site baseline.
 
 - Axum owns routes and HTTP status codes.
 - Maud renders complete HTML documents.
-- `pulldown-cmark` renders Markdown on the server.
 - Tailwind CSS runs through its standalone CLI.
 - µJS progressively enhances links by replacing `<main>`.
-- Anime.js is initialized by a small imperative module after both document and µJS navigation.
 
 ## Development
 
@@ -26,10 +24,9 @@ just run
 Open <http://127.0.0.1:3000>. Tailwind watches its sources independently, and
 the server watcher ignores generated CSS so CSS rebuilds do not restart Rust.
 Before each Rust restart, `rustywind` sorts Maud utility classes using the
-current generated stylesheet. Rust, Markdown, Tailwind input, and local
-browser-JavaScript changes still reload the page. `src/static` contains browser
-assets. `direnv allow` activates the Nix shell automatically when entering this
-directory.
+current generated stylesheet. Rust and Tailwind input changes still reload the
+page. `src/static` contains browser assets. `direnv allow` activates the Nix
+shell automatically when entering this directory.
 
 ## Quality
 

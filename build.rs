@@ -13,8 +13,6 @@ const ASSETS: &[(&str, &str)] = &[
     ("FAVICON_32", "src/static/favicon/favicon-32x32.png"),
     ("FAVICON_ICO", "src/static/favicon/favicon.ico"),
     ("FAVICON_MANIFEST", "src/static/favicon/site.webmanifest"),
-    ("IRIDIUM_LOGO", "src/static/iridium.png"),
-    ("ANIME_JS", "src/static/js/anime.min.js"),
     ("MU_JS", "src/static/js/mu.min.js"),
     ("SITE_CSS", "src/static/css/site.css"),
     ("SITE_JS", "src/static/js/site.js"),
