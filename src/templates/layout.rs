@@ -3,9 +3,9 @@ use maud::{DOCTYPE, Markup, PreEscaped, html};
 
 use crate::assets;
 
-use super::theme_toggle;
+use super::{footer, theme_toggle};
 
-pub fn page(title: &str, description: &str, is_home: bool, content: Markup) -> Html<String> {
+pub fn page(title: &str, description: &str, content: Markup) -> Html<String> {
     let document = html! {
         (DOCTYPE)
         html lang="en" {
@@ -25,17 +25,15 @@ pub fn page(title: &str, description: &str, is_home: bool, content: Markup) -> H
             body class="min-h-screen pt-20 antialiased sm:pt-24" {
                 header class="fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:pt-4" {
                     nav class="mx-auto flex max-w-4xl items-center gap-1 rounded-lg border bg-background/90 p-1 shadow-sm backdrop-blur" aria-label="Main navigation" {
-                        a class=(if is_home { "pointer-events-none inline-flex items-center rounded-md px-2 py-1 opacity-0 transition-opacity hover:bg-accent" } else { "inline-flex items-center rounded-md px-2 py-1 transition-opacity hover:bg-accent" }) href="/" data-home-link {
+                        a class="inline-flex items-center rounded-md px-2 py-1 transition-colors hover:bg-accent" href="/" {
                             span class="text-base font-semibold tracking-tight" { "Sanarte" }
                         }
                         (theme_toggle())
                     }
                 }
-                main class="mx-auto w-full max-w-5xl px-4 py-10 sm:py-16" { (content) }
-                footer class="border-t" {
-                    div class="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between" {
-                        p { "Copyright (c) 2026 Sanarte. All Rights Reserved." }
-                    }
+                main class="mx-auto w-full max-w-4xl py-10 sm:py-16" { (content) }
+                footer class="mx-auto w-full max-w-4xl" {
+                    (footer())
                 }
                 script src=(assets::MU_JS) defer {};
                 script src=(assets::SITE_JS) defer {};

@@ -22,3 +22,6 @@ pub use star_and_crescent::star_and_crescent;
 mod desktop;
 #[allow(unused_imports)]
 pub use desktop::desktop;
+mod instagram_logo;
+#[allow(unused_imports)]
+pub use instagram_logo::instagram_logo;

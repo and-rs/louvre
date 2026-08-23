@@ -7,7 +7,7 @@ pub fn home() -> Markup {
                 h1 class="page-title" { "Sanarte" }
                 p class="mt-4 text-lg leading-8 text-muted-foreground" { "Boilerplate home page." }
             }
-            section {
+            section id="gallery" {
                 h2 class="text-xl font-semibold tracking-tight" { "Gallery" }
                 div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4" {
                     a href="/artwork/test" {

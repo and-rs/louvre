@@ -17,7 +17,6 @@ pub async fn home() -> Html<String> {
     templates::page(
         "Sanarte",
         "A server-rendered site baseline.",
-        true,
         templates::home(),
     )
 }
@@ -34,7 +33,7 @@ pub async fn artwork(State(state): State<Arc<AppState>>, Path(id): Path<String>)
 
     match state.storage.list(&format!("artworks/{id}/")).await {
         Ok(files) if !files.is_empty() => {
-            templates::page(&id, "Artwork", false, templates::artwork(&id, &files)).into_response()
+            templates::page(&id, "Artwork", templates::artwork(&id, &files)).into_response()
         }
         Ok(_) => not_found().await,
         Err(error) => {
@@ -86,7 +85,6 @@ pub async fn not_found() -> Response {
         templates::page(
             "Not found",
             "The requested page does not exist.",
-            false,
             templates::not_found(),
         ),
     )
