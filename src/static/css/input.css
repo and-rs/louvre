@@ -159,6 +159,10 @@
 }
 
 @layer components {
+  .page-shell {
+    @apply mx-auto w-full max-w-4xl px-4;
+  }
+
   .page-title {
     @apply text-4xl font-bold tracking-tight sm:text-5xl;
   }

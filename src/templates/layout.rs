@@ -3,7 +3,7 @@ use maud::{DOCTYPE, Markup, PreEscaped, html};
 
 use crate::assets;
 
-use super::{footer, theme_toggle};
+use super::{ButtonSize, ButtonVariant, button_link, footer, theme_toggle};
 
 pub fn page(title: &str, description: &str, content: Markup) -> Html<String> {
     let document = html! {
@@ -23,16 +23,16 @@ pub fn page(title: &str, description: &str, content: Markup) -> Html<String> {
                 link rel="stylesheet" href=(assets::SITE_CSS) data-site-stylesheet data-source=(assets::SITE_CSS);
             }
             body class="min-h-screen pt-20 antialiased sm:pt-24" {
-                header class="fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:pt-4" {
-                    nav class="mx-auto flex max-w-4xl items-center gap-1 rounded-lg border bg-background/90 p-1 shadow-sm backdrop-blur" aria-label="Main navigation" {
-                        a class="inline-flex items-center rounded-md px-2 py-1 transition-colors hover:bg-accent" href="/" {
-                            span class="text-base font-semibold tracking-tight" { "Sanarte" }
+                header class="fixed inset-x-0 top-0 z-50" {
+                    div class="pt-3 sm:pt-4 page-shell" {
+                        nav class="flex items-center gap-1 rounded-lg border bg-background/90 p-1 shadow-sm backdrop-blur" aria-label="Main navigation" {
+                            (button_link("Sanarte", "/", ButtonVariant::Ghost, ButtonSize::Default))
+                            (theme_toggle())
                         }
-                        (theme_toggle())
                     }
                 }
-                main class="mx-auto w-full max-w-4xl py-10 sm:py-16" { (content) }
-                footer class="mx-auto w-full max-w-4xl" {
+                main class="py-10 sm:py-16 page-shell" { (content) }
+                footer class="page-shell" {
                     (footer())
                 }
                 script src=(assets::MU_JS) defer {};

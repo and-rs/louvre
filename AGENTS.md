@@ -10,7 +10,7 @@
 
 - Use semantic shadcn utilities (`bg-card`, `text-muted-foreground`, `border-border`) instead of literal colors in templates.
 - Place reusable Maud components in `src/templates/components/` and re-export them through `src/templates/components/mod.rs`.
-- Use the shared `max-w-4xl` shell for navigation, main content, and footer; page-specific content may use a narrower nested max width.
+- Use the shared `max-w-4xl px-2` shell for navigation, main content, and footer; page-specific content may use a narrower nested max width.
 
 ## Navigation Links
 

@@ -47,9 +47,9 @@ fn button_link_with_target(
         ButtonVariant::Destructive => "bg-destructive text-white hover:bg-destructive/90",
     };
     let size_class = match size {
-        ButtonSize::Small => "h-8 rounded-md px-3 text-xs",
-        ButtonSize::Default => "h-9 rounded-md px-4 text-sm",
-        ButtonSize::Large => "h-10 rounded-md px-6 text-base",
+        ButtonSize::Small => "h-8 rounded-md px-4 text-xs",
+        ButtonSize::Default => "h-9 rounded-md px-6 text-sm",
+        ButtonSize::Large => "h-10 rounded-md px-8 text-base",
     };
 
     html! {

@@ -1,4 +1,7 @@
-use crate::{storage::Storage, templates};
+use crate::{
+    storage::{Storage, StorageError},
+    templates,
+};
 use axum::{
     extract::{Path, State},
     http::{
@@ -72,9 +75,10 @@ pub async fn artwork_image(
             bytes,
         )
             .into_response(),
-        Err(error) => {
-            tracing::info!(%error, key = %format!("artworks/{id}/{file}"), "artwork image not found");
-            StatusCode::NOT_FOUND.into_response()
+        Err(StorageError::NotFound) => StatusCode::NOT_FOUND.into_response(),
+        Err(StorageError::Other(error)) => {
+            tracing::warn!(%error, key = %format!("artworks/{id}/{file}"), "failed to fetch artwork image");
+            StatusCode::BAD_GATEWAY.into_response()
         }
     }
 }

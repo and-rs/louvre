@@ -1,6 +1,11 @@
 use aws_sdk_s3::Client;
 use aws_sdk_s3::error::DisplayErrorContext;
 
+pub enum StorageError {
+    NotFound,
+    Other(String),
+}
+
 #[derive(Clone)]
 pub struct Storage {
     client: Client,
@@ -15,7 +20,7 @@ impl Storage {
         }
     }
 
-    pub async fn get(&self, key: &str) -> Result<Vec<u8>, String> {
+    pub async fn get(&self, key: &str) -> Result<Vec<u8>, StorageError> {
         let object = self
             .client
             .get_object()
@@ -23,12 +28,21 @@ impl Storage {
             .key(key)
             .send()
             .await
-            .map_err(|error| format!("{}", DisplayErrorContext(&error)))?;
+            .map_err(|error| {
+                if error
+                    .as_service_error()
+                    .is_some_and(|service| service.is_no_such_key())
+                {
+                    StorageError::NotFound
+                } else {
+                    StorageError::Other(format!("{}", DisplayErrorContext(&error)))
+                }
+            })?;
         let bytes = object
             .body
             .collect()
             .await
-            .map_err(|error| error.to_string())?
+            .map_err(|error| StorageError::Other(error.to_string()))?
             .into_bytes()
             .to_vec();
         Ok(bytes)

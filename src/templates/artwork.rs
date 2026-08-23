@@ -4,7 +4,7 @@ use super::{ButtonSize, ButtonVariant, button_link};
 
 pub fn artwork(id: &str, files: &[String]) -> Markup {
     html! {
-        article class="mx-auto max-w-4xl" {
+        article {
             p { (button_link("<- Gallery", "/", ButtonVariant::Link, ButtonSize::Small)) }
             header class="mt-8 border-b pb-8" {
                 h1 class="page-title" { (id) }
