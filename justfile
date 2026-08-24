@@ -43,6 +43,9 @@ icon name:
 check-auth:
     aws sts get-caller-identity
 
+railway-s3:
+    ./scripts/configure-railway-s3.sh
+
 infra-bootstrap:
     ./scripts/bootstrap-state.sh
 
