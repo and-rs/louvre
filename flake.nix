@@ -41,10 +41,10 @@
               export TF_VAR_target_region="$REGION"
               export AWS_DEFAULT_REGION="$REGION"
               export AWS_REGION="$REGION"
-              aws configure set profile.sanarte.region "$REGION" 2>/dev/null || true
-              aws configure set profile.sanarte.credential_process \
+              aws configure set profile.louvre.region "$REGION" 2>/dev/null || true
+              aws configure set profile.louvre.credential_process \
                 "aws configure export-credentials --profile default --format process" 2>/dev/null || true
-              export AWS_PROFILE="sanarte"
+              export AWS_PROFILE="louvre"
             '';
           };
         });

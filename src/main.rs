@@ -38,7 +38,7 @@ async fn main() {
 
     let aws_config = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
     let s3_client = aws_sdk_s3::Client::new(&aws_config);
-    let bucket = std::env::var("S3_BUCKET").unwrap_or_else(|_| "sanarte-artworks".to_string());
+    let bucket = std::env::var("S3_BUCKET").unwrap_or_else(|_| "louvre-artworks".to_string());
     let state = Arc::new(AppState {
         storage: Storage::new(s3_client, bucket),
     });

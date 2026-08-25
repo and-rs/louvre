@@ -14,7 +14,7 @@ pub fn page(title: &str, description: &str, content: Markup) -> Html<String> {
                 meta name="viewport" content="width=device-width, initial-scale=1";
                 meta name="description" content=(description);
                 script { (PreEscaped("(function(){var theme=localStorage.getItem('theme')||'system';var dark=theme==='dark'||(theme==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',dark);document.documentElement.style.colorScheme=dark?'dark':'light';document.documentElement.dataset.theme=theme})()")) }
-                title { (title) " | Sanarte" }
+                title { (title) " | Louvre" }
                 link rel="apple-touch-icon" sizes="180x180" href=(assets::APPLE_TOUCH_ICON);
                 link rel="icon" type="image/png" sizes="32x32" href=(assets::FAVICON_32);
                 link rel="icon" type="image/png" sizes="16x16" href=(assets::FAVICON_16);
@@ -26,7 +26,7 @@ pub fn page(title: &str, description: &str, content: Markup) -> Html<String> {
                 header class="fixed inset-x-0 top-0 z-50" {
                     div class="pt-3 sm:pt-4 page-shell" {
                         nav class="flex items-center gap-1 rounded-lg border bg-background/90 p-1 shadow-sm backdrop-blur" aria-label="Main navigation" {
-                            (button_link("Sanarte", "/", ButtonVariant::Ghost, ButtonSize::Default))
+                            (button_link("Louvre", "/", ButtonVariant::Ghost, ButtonSize::Default))
                             (theme_toggle())
                         }
                     }

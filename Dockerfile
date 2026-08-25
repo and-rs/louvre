@@ -30,9 +30,9 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/sanarte /usr/local/bin/sanarte
+COPY --from=builder /app/target/release/louvre /usr/local/bin/louvre
 COPY --from=builder /app/src/static src/static
 
 ENV RUST_LOG=info
 
-CMD ["sanarte"]
+CMD ["louvre"]

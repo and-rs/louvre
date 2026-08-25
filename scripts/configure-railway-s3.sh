@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-credentials_file="${1:-.secrets/sanarte-app-creds.json}"
+credentials_file="${1:-.secrets/louvre-app-creds.json}"
 
 if [[ ! -f "$credentials_file" ]]; then
   echo "error: missing $credentials_file" >&2
@@ -27,7 +27,7 @@ fi
 
 railway variable set \
   AWS_REGION=us-east-1 \
-  S3_BUCKET=sanarte-artworks \
+  S3_BUCKET=louvre-artworks \
   AWS_EC2_METADATA_DISABLED=true \
   --skip-deploys
 printf '%s' "$access_key_id" | railway variable set AWS_ACCESS_KEY_ID --stdin --skip-deploys

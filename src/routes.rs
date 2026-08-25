@@ -18,7 +18,7 @@ pub struct AppState {
 
 pub async fn home() -> Html<String> {
     templates::page(
-        "Sanarte",
+        "Louvre",
         "A server-rendered site baseline.",
         templates::home(),
     )

@@ -1,8 +1,8 @@
 run:
     #!/usr/bin/env bash
-    if [[ -f .secrets/sanarte-app-creds.json ]]; then
-        export AWS_ACCESS_KEY_ID=$(awk -F'"' '/"AccessKeyId"/{print $4; exit}' .secrets/sanarte-app-creds.json)
-        export AWS_SECRET_ACCESS_KEY=$(awk -F'"' '/"SecretAccessKey"/{print $4; exit}' .secrets/sanarte-app-creds.json)
+    if [[ -f .secrets/louvre-app-creds.json ]]; then
+        export AWS_ACCESS_KEY_ID=$(awk -F'"' '/"AccessKeyId"/{print $4; exit}' .secrets/louvre-app-creds.json)
+        export AWS_SECRET_ACCESS_KEY=$(awk -F'"' '/"SecretAccessKey"/{print $4; exit}' .secrets/louvre-app-creds.json)
     fi
     tailwindcss -i src/static/css/input.css -o src/static/css/site.css --silent
     tailwindcss -i src/static/css/input.css -o src/static/css/site.css --watch --silent &
@@ -50,13 +50,16 @@ infra-bootstrap:
     ./scripts/bootstrap-state.sh
 
 infra-init:
-    terraform -chdir=infra init
+    terraform -chdir=infra init -reconfigure
 
 infra-plan:
     terraform -chdir=infra plan
 
 infra-deploy:
     terraform -chdir=infra apply
+
+infra-app-key:
+    ./scripts/create-app-key.sh
 
 infra-destroy:
     terraform -chdir=infra destroy

@@ -12,8 +12,8 @@
 ## 2. Footer
 
 - [x] Replace the current paragraph-only footer with a structured responsive layout.
-- [x] Include brand and positioning copy, internal navigation, external profiles, and a contact CTA.
-- [x] Use reusable buttons for the CTA and reusable Phosphor icons for external destinations.
+- [ ] Add external profiles and a contact CTA when the template receives a product identity.
+- [ ] Use reusable buttons for the CTA and reusable Phosphor icons for external destinations.
 - [x] Keep the footer inside the existing `max-w-5xl` shell and use semantic shadcn utilities only.
 
 ## 3. Analytics

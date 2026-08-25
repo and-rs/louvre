@@ -1465,6 +1465,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ceec5bc11778974d1bcb055b18002eba7f4b3518b6a0081b3af5f21666da9ad"
 
 [[package]]
+name = "louvre"
+version = "0.1.0"
+dependencies = [
+ "aws-config",
+ "aws-sdk-s3",
+ "axum",
+ "http 1.5.0",
+ "http-body-util",
+ "maud",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tower-livereload",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "lru"
 version = "0.16.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1864,24 +1882,6 @@ name = "ryu"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9774ba4a74de5f7b1c1451ed6cd5285a32eddb5cccb8cc655a4e50009e06477f"
-
-[[package]]
-name = "sanarte"
-version = "0.1.0"
-dependencies = [
- "aws-config",
- "aws-sdk-s3",
- "axum",
- "http 1.5.0",
- "http-body-util",
- "maud",
- "tokio",
- "tower",
- "tower-http",
- "tower-livereload",
- "tracing",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "schannel"

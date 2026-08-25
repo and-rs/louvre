@@ -1,4 +1,4 @@
-# Sanarte
+# Louvre
 
 A small server-rendered site baseline.
 
@@ -53,3 +53,26 @@ Railway deploys automatically when the connected GitHub branch receives a
 commit. `railway.json` selects the included multi-stage `Dockerfile`, which
 generates minified Tailwind CSS and builds the release binary. The server binds
 to Railway's injected `PORT` and exposes `/health` for zero-downtime deploys.
+
+## Infrastructure
+
+AWS infrastructure is defined in `infra/`. After configuring a default AWS CLI
+profile, provision a fresh stack with:
+
+```bash
+just infra-bootstrap
+just infra-init
+just infra-plan
+just infra-deploy
+just infra-app-key
+```
+
+`infra-app-key` writes the restricted `louvre-app` credentials to the ignored
+`.secrets/louvre-app-creds.json` file. Link the intended Railway service, then
+configure its S3 variables without exposing the secret in shell history:
+
+```bash
+railway login
+railway link
+just railway-s3
+```

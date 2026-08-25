@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "artworks" {
-  bucket = "sanarte-artworks"
+  bucket = "louvre-artworks"
 }
 
 resource "aws_s3_bucket_public_access_block" "artworks" {

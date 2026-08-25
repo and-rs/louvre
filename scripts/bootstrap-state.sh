@@ -2,7 +2,7 @@
 set -euo pipefail
 
 region="${AWS_REGION:-us-east-1}"
-bucket="sanarte-terraform-state"
+bucket="louvre-terraform-state"
 
 if aws s3api head-bucket --bucket "$bucket" 2>/dev/null; then
   echo "state bucket '$bucket' already exists"

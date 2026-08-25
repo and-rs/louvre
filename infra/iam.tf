@@ -1,9 +1,9 @@
 resource "aws_iam_user" "app" {
-  name = "sanarte-app"
+  name = "louvre-app"
 }
 
 resource "aws_iam_user_policy" "app" {
-  name = "sanarte-app-artworks"
+  name = "louvre-app-artworks"
   user = aws_iam_user.app.name
 
   policy = jsonencode({
