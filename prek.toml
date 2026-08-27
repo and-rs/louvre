@@ -25,23 +25,23 @@ pass_filenames = false
 id = "biome"
 name = "biome"
 language = "system"
-entry = "biome check src/static/js/dev.js src/static/js/site.js"
-files = "^src/static/js/(dev|site)\\.js$"
+entry = "biome check louvre-site/src/static/js/dev.js louvre-site/src/static/js/site.js"
+files = "^louvre-site/src/static/js/(dev|site)\\.js$"
 pass_filenames = false
 
 [[repos.hooks]]
 id = "rustywind"
 name = "rustywind"
 language = "system"
-entry = "sh -c 'tailwindcss -i src/static/css/input.css -o src/static/css/site.css && rustywind --check-formatted --output-css-file src/static/css/site.css src/templates'"
-files = "^src/templates/.*\\.rs$"
+entry = "sh -c 'tailwindcss -i louvre-site/src/static/css/input.css -o louvre-site/src/static/css/site.css && rustywind --check-formatted --output-css-file louvre-site/src/static/css/site.css louvre-site/src/templates'"
+files = "^louvre-site/src/templates/.*\\.rs$"
 pass_filenames = false
 
 [[repos.hooks]]
 id = "cargo-clippy"
 name = "cargo clippy"
 language = "system"
-entry = "cargo clippy --all-targets --all-features -- -D warnings"
+entry = "cargo clippy --workspace --all-targets --all-features -- -D warnings"
 types = ["rust"]
 pass_filenames = false
 
@@ -49,6 +49,6 @@ pass_filenames = false
 id = "cargo-test"
 name = "cargo test"
 language = "system"
-entry = "cargo test --all-features"
+entry = "cargo test --workspace --all-features"
 types = ["rust"]
 pass_filenames = false

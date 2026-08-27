@@ -3,7 +3,7 @@
 ## 1. Phosphor Icons
 
 - [x] Use Phosphor Icons, not Lucide.
-- [x] Store reusable icon Maud components in `src/templates/components/icons/` and re-export them through `src/templates/components/icons/mod.rs`.
+- [x] Store reusable icon Maud components in `louvre-site/src/templates/components/icons/` and re-export them through `louvre-site/src/templates/components/icons/mod.rs`.
 - [x] Icons must follow the SVG rules in `AGENTS.md`: Tailwind-only paint and stroke-width utilities with semantic shadcn tokens.
 - [x] Add a `just icon <name>` intake command backed by a small script.
 - [x] The script should download a chosen Phosphor SVG weight, convert its SVG elements to Maud markup, remove conflicting paint attributes, and create the component file.
@@ -12,8 +12,8 @@
 ## 2. Footer
 
 - [x] Replace the current paragraph-only footer with a structured responsive layout.
-- [ ] Add external profiles and a contact CTA when the template receives a product identity.
-- [ ] Use reusable buttons for the CTA and reusable Phosphor icons for external destinations.
+- [x] Add external profiles and a contact CTA when the template receives a product identity.
+- [x] Use reusable buttons for the CTA and reusable Phosphor icons for external destinations.
 - [x] Keep the footer inside the existing `max-w-5xl` shell and use semantic shadcn utilities only.
 
 ## 3. Analytics

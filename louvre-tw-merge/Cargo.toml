@@ -1,0 +1,12 @@
+[package]
+name = "louvre-tw-merge"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[features]
+debug = []
+
+[dependencies]
+nom.workspace = true

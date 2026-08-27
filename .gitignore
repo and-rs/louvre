@@ -1,5 +1,5 @@
 /target
-/src/static/css/site.css
+/louvre-site/src/static/css/site.css
 .direnv/
 .env
 .secrets/

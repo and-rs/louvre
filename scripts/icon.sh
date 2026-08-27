@@ -26,7 +26,7 @@ if [[ ! "$name" =~ ^[a-z0-9-]+$ ]]; then
 fi
 
 module="${name//-/_}"
-icons_dir="src/templates/components/icons"
+icons_dir="louvre-site/src/templates/components/icons"
 target="$icons_dir/$module.rs"
 mod_file="$icons_dir/mod.rs"
 
@@ -68,7 +68,6 @@ mkdir -p "$icons_dir"
 {
   echo "use maud::{Markup, html};"
   echo ""
-  echo "#[allow(dead_code)]"
   echo "pub fn $module(class: &str) -> Markup {"
   echo "    html! {"
   echo "        svg class=(format!(\"shrink-0 fill-current {class}\")) viewBox=\"0 0 256 256\" aria-hidden=\"true\" {"
@@ -89,10 +88,10 @@ if ! grep -q "^mod $module;$" "$mod_file"; then
   printf 'mod %s;\n' "$module" >>"$mod_file"
 fi
 if ! grep -q "^pub use $module::$module;$" "$mod_file"; then
-  printf '#[allow(unused_imports)]\npub use %s::%s;\n' "$module" "$module" >>"$mod_file"
+  printf 'pub use %s::%s;\n' "$module" "$module" >>"$mod_file"
 fi
 
-components_mod="src/templates/components/mod.rs"
+components_mod="louvre-site/src/templates/components/mod.rs"
 if [[ ! -f "$components_mod" ]] || ! grep -q "^mod icons;$" "$components_mod"; then
   printf 'mod icons;\n' >>"$components_mod"
 fi

@@ -2,6 +2,11 @@
 
 A small server-rendered site baseline.
 
+## Workspace
+
+- `louvre-site/` is the Axum/Maud application crate and builds the `louvre` binary.
+- `louvre-tw-merge/` vendors the Tailwind class merger used by template components.
+
 - Axum owns routes and HTTP status codes.
 - Maud renders complete HTML documents.
 - Tailwind CSS runs through its standalone CLI.
@@ -25,7 +30,7 @@ Open <http://127.0.0.1:3000>. Tailwind watches its sources independently, and
 the server watcher ignores generated CSS so CSS rebuilds do not restart Rust.
 Before each Rust restart, `rustywind` sorts Maud utility classes using the
 current generated stylesheet. Rust and Tailwind input changes still reload the
-page. `src/static` contains browser assets. `direnv allow` activates the Nix
+page. `louvre-site/src/static` contains browser assets. `direnv allow` activates the Nix
 shell automatically when entering this directory.
 
 ## Quality

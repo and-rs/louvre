@@ -9,8 +9,8 @@
 ## Template Styling
 
 - Use semantic shadcn utilities (`bg-card`, `text-muted-foreground`, `border-border`) instead of literal colors in templates.
-- Place reusable Maud components in `src/templates/components/` and re-export them through `src/templates/components/mod.rs`.
-- Use the shared `max-w-4xl px-2` shell for navigation, main content, and footer; page-specific content may use a narrower nested max width.
+- Place reusable Maud components in `louvre-site/src/templates/components/` and re-export them through `louvre-site/src/templates/components/mod.rs`.
+- Use the shared `max-w-4xl px-4` shell for navigation, main content, and footer; page-specific content may use a narrower nested max width.
 
 ## Navigation Links
 

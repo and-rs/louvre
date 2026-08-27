@@ -1,25 +1,24 @@
-[package]
-name = "louvre"
-version = "0.1.0"
+[workspace]
+members = ["louvre-site", "louvre-tw-merge"]
+default-members = ["louvre-site"]
+resolver = "3"
+
+[workspace.package]
 edition = "2024"
 rust-version = "1.94"
+version = "0.1.0"
 
-[features]
-dev = ["dep:tower-livereload"]
-
-[dependencies]
+[workspace.dependencies]
 aws-config = { version = "1", features = ["behavior-version-latest"] }
 aws-sdk-s3 = "1"
 axum = "0.8"
+http = "1"
+http-body-util = "0.1"
 maud = "0.27"
+nom = "7"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tower = "0.5"
 tower-http = { version = "0.6", features = ["fs", "set-header", "trace"] }
-tower-livereload = { version = "0.10", optional = true }
+tower-livereload = "0.10"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-
-[dev-dependencies]
-http = "1"
-http-body-util = "0.1"
-tower = { version = "0.5", features = ["util"] }
