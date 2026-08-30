@@ -20,7 +20,7 @@ pub fn page(title: &str, description: &str, content: Markup) -> Html<String> {
                 link rel="icon" type="image/png" sizes="16x16" href=(assets::FAVICON_16);
                 link rel="icon" href=(assets::FAVICON_ICO);
                 link rel="manifest" href=(assets::FAVICON_MANIFEST);
-                link rel="stylesheet" href=(assets::SITE_CSS) data-site-stylesheet data-source=(assets::SITE_CSS);
+                link rel="stylesheet" href=(assets::SITE_CSS);
             }
             body class="min-h-screen pt-20 antialiased sm:pt-24" {
                 header class="fixed inset-x-0 top-0 z-50" {
@@ -37,9 +37,6 @@ pub fn page(title: &str, description: &str, content: Markup) -> Html<String> {
                 }
                 script src=(assets::MU_JS) defer {};
                 script src=(assets::SITE_JS) defer {};
-                @if cfg!(feature = "dev") {
-                    script src="/static/js/dev.js" defer {};
-                }
             }
         }
     };
