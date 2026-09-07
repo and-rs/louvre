@@ -1,39 +1,55 @@
-# Site Roadmap
+# Template Roadmap
 
-## 1. Phosphor Icons
+## 1. Local-First Foundation
 
-- [x] Use Phosphor Icons, not Lucide.
-- [x] Store reusable icon Maud components in `louvre-site/src/templates/components/icons/` and re-export them through `louvre-site/src/templates/components/icons/mod.rs`.
-- [x] Icons must follow the SVG rules in `AGENTS.md`: Tailwind-only paint and stroke-width utilities with semantic shadcn tokens.
-- [x] Add a `just icon <name>` intake command backed by a small script.
-- [x] The script should download a chosen Phosphor SVG weight, convert its SVG elements to Maud markup, remove conflicting paint attributes, and create the component file.
-- [x] Start with the icons needed for the footer and external links: GitHub, LinkedIn, ArrowUpRight, Envelope, and ArrowRight.
+- [ ] Move site identity into one typed config: name, public URL, description,
+      social image, footer links, and optional analytics settings.
+- [ ] Make local development work without AWS credentials or an S3 bucket.
+- [ ] Make artwork/S3 storage an optional example capability rather than a
+      startup requirement.
+- [ ] Add `.env.example` and document required versus optional environment
+      variables.
+- [ ] Validate required production configuration at startup.
 
-## 2. Footer
+## 2. Public-Site Baseline
 
-- [x] Replace the current paragraph-only footer with a structured responsive layout.
-- [x] Add external profiles and a contact CTA when the template receives a product identity.
-- [x] Use reusable buttons for the CTA and reusable Phosphor icons for external destinations.
-- [x] Keep the footer inside the existing `max-w-5xl` shell and use semantic shadcn utilities only.
+- [ ] Refactor page inputs into a metadata struct.
+- [ ] Add canonical, Open Graph, Twitter, and theme-color metadata.
+- [ ] Add `/robots.txt` and `/sitemap.xml` from known static routes.
+- [ ] Add a social preview image once branding is stable.
+- [x] Keep the shared layout, theme toggle, footer, buttons, and Phosphor icon
+      workflow as the default design system.
 
-## 3. Analytics
+## 3. Developer Experience
 
-- Use self-hosted Umami on Railway with a separate Railway PostgreSQL service. Do not add Grafana.
-- Configure Umami with the Railway Postgres `DATABASE_URL`, UTC timestamps, a durable admin password, and a public analytics domain or service URL.
-- Add the tracker script only when `UMAMI_WEBSITE_ID` and `UMAMI_SCRIPT_URL` are configured, so local development has no analytics dependency.
-- Track only meaningful events: home CTA clicks, outbound work links, and footer contact/profile links.
-- Use Umami's dashboard, goals, funnels, and performance reporting before considering another observability system.
+- [x] Run Tailwind, Rustywind, and Axum through one development watch flow.
+- [x] Reload the browser after source changes without CSS polling.
+- [x] Document how to add a route, page, component, icon, and static asset.
+- [x] Document the local development and production build flows.
+- [ ] Add a concise "start a new site from this template" guide.
 
-## 4. Metadata And Discovery
+## 4. Deployment And Operations
 
-- Expand page metadata beyond title and description: canonical URL, Open Graph title/description/type/url/image, Twitter card metadata, and theme color.
-- Refactor the page template input into a metadata struct so routes provide page-specific values consistently.
-- Add `/robots.txt` and `/sitemap.xml`; generate sitemap entries from the known static routes.
-- Add a social preview image once there is a stable brand asset.
+- [x] Build content-versioned static URLs for production.
+- [x] Serve Brotli-compressed static assets in production.
+- [x] Add graceful shutdown.
+- [ ] Split health checks into liveness and readiness endpoints.
+- [ ] Define production logging and error-reporting expectations.
+- [ ] Add appropriate security headers for public pages.
+- [ ] Document Railway deployment, S3 setup, and Terraform operations.
 
-## Delivery Order
+## 5. Quality Gates
 
-1. Phosphor intake script and first reusable icons.
-2. Footer rebuild.
-3. Metadata, robots, and sitemap.
-4. Railway Postgres plus Umami, then event tracking.
+- [x] Format, Tailwind generation, Rustywind, lint, and test checks exist.
+- [x] Run `just check` in CI.
+- [ ] Add route-level HTTP tests for standard pages and failures.
+- [ ] Cover production asset versioning and Brotli behavior in tests.
+- [ ] Add an end-to-end smoke check for the production container.
+
+## 6. Optional Integrations
+
+- [ ] Add self-hosted Umami on Railway with Railway PostgreSQL.
+- [ ] Load analytics only when its environment variables are configured.
+- [ ] Track meaningful CTA, outbound-link, and footer-link events.
+- [ ] Add analytics dashboard goals and funnels before adopting more
+      observability.
