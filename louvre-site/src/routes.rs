@@ -1,6 +1,6 @@
 use crate::{
     storage::{Storage, StorageError},
-    templates,
+    templates::{self, PageMetadata},
 };
 use axum::{
     extract::{Path, State},
@@ -18,8 +18,10 @@ pub struct AppState {
 
 pub async fn home() -> Html<String> {
     templates::page(
-        "Louvre",
-        "A server-rendered site baseline.",
+        PageMetadata {
+            page_title: None,
+            description: "A server-rendered site baseline.",
+        },
         templates::home(),
     )
 }
@@ -35,9 +37,14 @@ pub async fn artwork(State(state): State<Arc<AppState>>, Path(id): Path<String>)
     }
 
     match state.storage.list(&format!("artworks/{id}/")).await {
-        Ok(files) if !files.is_empty() => {
-            templates::page(&id, "Artwork", templates::artwork(&id, &files)).into_response()
-        }
+        Ok(files) if !files.is_empty() => templates::page(
+            PageMetadata {
+                page_title: Some(&id),
+                description: "Artwork",
+            },
+            templates::artwork(&id, &files),
+        )
+        .into_response(),
         Ok(_) => not_found().await,
         Err(error) => {
             tracing::warn!(%error, artwork_id = %id, "failed to list artwork images");
@@ -87,8 +94,10 @@ pub async fn not_found() -> Response {
     (
         StatusCode::NOT_FOUND,
         templates::page(
-            "Not found",
-            "The requested page does not exist.",
+            PageMetadata {
+                page_title: Some("Not found"),
+                description: "The requested page does not exist.",
+            },
             templates::not_found(),
         ),
     )

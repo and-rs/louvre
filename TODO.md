@@ -13,7 +13,7 @@
 
 ## 2. Public-Site Baseline
 
-- [ ] Refactor page inputs into a metadata struct.
+- [x] Refactor page inputs into a metadata struct.
 - [ ] Add canonical, Open Graph, Twitter, and theme-color metadata.
 - [ ] Add `/robots.txt` and `/sitemap.xml` from known static routes.
 - [ ] Add a social preview image once branding is stable.
