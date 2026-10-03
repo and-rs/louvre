@@ -26,7 +26,7 @@ icon name:
 check-auth:
     aws sts get-caller-identity
 
-# Configure Railway with the S3 credentials.
+# Create an app access key and configure Railway to use the S3 bucket.
 railway-s3:
     ./scripts/configure-railway-s3.sh
 
@@ -45,10 +45,6 @@ infra-plan:
 # Apply Terraform changes.
 infra-deploy:
     terraform -chdir=infra apply
-
-# Create the Louvre app IAM credentials.
-infra-app-key:
-    ./scripts/create-app-key.sh
 
 # Destroy the Terraform-managed infrastructure.
 infra-destroy:

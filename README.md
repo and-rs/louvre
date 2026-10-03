@@ -90,8 +90,10 @@ Railway uses `Dockerfile` and checks `/health`, as configured in
 - `AWS_SECRET_ACCESS_KEY`
 
 Terraform manages the artwork bucket and its IAM user. After authenticating
-with AWS and Railway, use `just infra-init`, `just infra-plan`,
-`just infra-deploy`, `just infra-app-key`, and `just railway-s3` as needed.
+with AWS and linking the Railway project and service, use `just infra-init`,
+`just infra-plan`, and `just infra-deploy` to create the AWS resources. Then run
+`just railway-s3` to create the app access key in memory, configure Railway, and
+trigger a deployment; the key is not saved locally.
 
 ## License
 
