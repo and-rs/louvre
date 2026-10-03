@@ -1,5 +1,9 @@
 # Agent Guidelines
 
+## Docs
+
+- Do not document each justfile command in the README, just mention its existance.
+
 ## SVG Styling
 
 - Use Tailwind utilities for all SVG paint and width: `fill-none`, `fill-*`, `stroke-*`, and `[stroke-width:*]`.

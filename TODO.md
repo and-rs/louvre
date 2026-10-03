@@ -2,13 +2,10 @@
 
 ## 1. Local-First Foundation
 
-- [ ] Move site identity into one typed config: name, public URL, description,
-      social image, footer links, and optional analytics settings.
+- [ ] Move site identity into one typed config: name, public URL, description, social image, footer links, and optional analytics settings.
 - [ ] Make local development work without AWS credentials or an S3 bucket.
-- [ ] Make artwork/S3 storage an optional example capability rather than a
-      startup requirement.
-- [ ] Add `.env.example` and document required versus optional environment
-      variables.
+- [ ] Make artwork/S3 storage an optional example capability rather than a startup requirement.
+- [ ] Add `.env.example` and document required versus optional environment variables.
 - [ ] Validate required production configuration at startup.
 
 ## 2. Public-Site Baseline
@@ -17,8 +14,7 @@
 - [ ] Add canonical, Open Graph, Twitter, and theme-color metadata.
 - [ ] Add `/robots.txt` and `/sitemap.xml` from known static routes.
 - [ ] Add a social preview image once branding is stable.
-- [x] Keep the shared layout, theme toggle, footer, buttons, and Phosphor icon
-      workflow as the default design system.
+- [x] Keep the shared layout, theme toggle, footer, buttons, and Phosphor icon workflow as the default design system.
 
 ## 3. Developer Experience
 
@@ -46,10 +42,9 @@
 - [ ] Cover production asset versioning and Brotli behavior in tests.
 - [ ] Add an end-to-end smoke check for the production container.
 
-## 6. Optional Integrations
+## 6. Integrations
 
 - [ ] Add self-hosted Umami on Railway with Railway PostgreSQL.
 - [ ] Load analytics only when its environment variables are configured.
 - [ ] Track meaningful CTA, outbound-link, and footer-link events.
-- [ ] Add analytics dashboard goals and funnels before adopting more
-      observability.
+- [ ] Add analytics dashboard goals and funnels before adopting more observability.
