@@ -60,7 +60,11 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
 fi
 
 # Regenerate styles before restarting Axum; ignore generated CSS to avoid a watch loop.
-cargo watch -d 0.2 -w louvre-site/src -i "$css_output" \
+cargo watch -d 0.2 \
+  -w Cargo.toml -w Cargo.lock \
+  -w louvre-site/Cargo.toml -w louvre-site/src \
+  -w louvre-storage/Cargo.toml -w louvre-storage/src \
+  -i "$css_output" \
   -s "tailwindcss -i $css_input -o $css_output --silent && \
   rustywind --write --output-css-file $css_output $templates && \
   cargo run -p louvre-site --bin louvre --features dev"

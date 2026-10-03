@@ -24,4 +24,4 @@ just run
 
 Run the project checks with `just check`. Use `just` to see the available commands.
 
-Create a PostgreSQL service in Railway and set the app service's `DATABASE_URL` variable to the PostgreSQL service's `DATABASE_URL` reference. The `/db/hello` endpoint runs a test query; without `DATABASE_URL`, it returns `503` while the rest of the app can still start.
+Create a PostgreSQL 17 service in Railway and set the app service's `DATABASE_URL` variable to the PostgreSQL service's `DATABASE_URL` reference. The homepage and `/db/hello` read the greeting from PostgreSQL.

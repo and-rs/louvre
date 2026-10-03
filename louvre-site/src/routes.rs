@@ -5,7 +5,7 @@ use axum::{
         StatusCode,
         header::{CACHE_CONTROL, CONTENT_TYPE},
     },
-    response::{Html, IntoResponse, Response},
+    response::{IntoResponse, Response},
 };
 use louvre_storage::{DbPool, Storage, StorageError};
 use std::sync::Arc;
@@ -15,14 +15,23 @@ pub struct AppState {
     pub database: Option<DbPool>,
 }
 
-pub async fn home() -> Html<String> {
+pub async fn home(State(state): State<Arc<AppState>>) -> Response {
+    let message = match &state.database {
+        Some(pool) => match greeting(pool).await {
+            Ok(message) => message,
+            Err(status) => return status.into_response(),
+        },
+        None => "Hello, world!".to_owned(),
+    };
+
     templates::page(
         PageMetadata {
             page_title: None,
-            description: "A server-rendered site baseline.",
+            description: "An artwork publishing platform.",
         },
-        templates::home(),
+        templates::home(&message),
     )
+    .into_response()
 }
 
 pub async fn database_hello(State(state): State<Arc<AppState>>) -> Response {
@@ -34,19 +43,26 @@ pub async fn database_hello(State(state): State<Arc<AppState>>) -> Response {
             .into_response();
     };
 
+    match greeting(pool).await {
+        Ok(message) => message.into_response(),
+        Err(status) => status.into_response(),
+    }
+}
+
+async fn greeting(pool: &DbPool) -> Result<String, StatusCode> {
     let mut connection = match pool.get().await {
         Ok(connection) => connection,
         Err(error) => {
             tracing::warn!(%error, "failed to get PostgreSQL connection");
-            return StatusCode::SERVICE_UNAVAILABLE.into_response();
+            return Err(StatusCode::SERVICE_UNAVAILABLE);
         }
     };
 
     match louvre_storage::hello(&mut connection).await {
-        Ok(message) => message.into_response(),
+        Ok(message) => Ok(message),
         Err(error) => {
             tracing::warn!(%error, "PostgreSQL hello query failed");
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
         }
     }
 }
