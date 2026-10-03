@@ -1,7 +1,4 @@
-use crate::{
-    storage::{Storage, StorageError},
-    templates::{self, PageMetadata},
-};
+use crate::templates::{self, PageMetadata};
 use axum::{
     extract::{Path, State},
     http::{
@@ -10,10 +7,12 @@ use axum::{
     },
     response::{Html, IntoResponse, Response},
 };
+use louvre_storage::{DbPool, Storage, StorageError};
 use std::sync::Arc;
 
 pub struct AppState {
     pub storage: Storage,
+    pub database: Option<DbPool>,
 }
 
 pub async fn home() -> Html<String> {
@@ -24,6 +23,32 @@ pub async fn home() -> Html<String> {
         },
         templates::home(),
     )
+}
+
+pub async fn database_hello(State(state): State<Arc<AppState>>) -> Response {
+    let Some(pool) = &state.database else {
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            "DATABASE_URL is not configured",
+        )
+            .into_response();
+    };
+
+    let mut connection = match pool.get().await {
+        Ok(connection) => connection,
+        Err(error) => {
+            tracing::warn!(%error, "failed to get PostgreSQL connection");
+            return StatusCode::SERVICE_UNAVAILABLE.into_response();
+        }
+    };
+
+    match louvre_storage::hello(&mut connection).await {
+        Ok(message) => message.into_response(),
+        Err(error) => {
+            tracing::warn!(%error, "PostgreSQL hello query failed");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
 }
 
 pub async fn artwork(State(state): State<Arc<AppState>>, Path(id): Path<String>) -> Response {

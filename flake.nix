@@ -32,6 +32,9 @@
               biome
               prek
               git
+              libpq
+              pkg-config
+              postgresql_17
             ];
             shellHook = ''
               export PREK_COLOR=never

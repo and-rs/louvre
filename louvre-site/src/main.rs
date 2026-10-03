@@ -1,6 +1,5 @@
 mod assets;
 mod routes;
-mod storage;
 mod templates;
 use axum::{Router, http::StatusCode, routing::get};
 use std::net::SocketAddr;
@@ -8,7 +7,8 @@ use std::sync::Arc;
 use tokio::net::TcpListener;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 
-use crate::{routes::AppState, storage::Storage};
+use crate::routes::AppState;
+use louvre_storage::{Storage, postgres_pool};
 
 #[cfg(feature = "dev")]
 use axum::http::{HeaderValue, header::CACHE_CONTROL};
@@ -36,15 +36,19 @@ async fn main() {
     #[cfg(not(feature = "dev"))]
     let static_files = static_files.precompressed_br();
 
-    let aws_config = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
-    let s3_client = aws_sdk_s3::Client::new(&aws_config);
-    let bucket = std::env::var("S3_BUCKET").unwrap_or_else(|_| "louvre-artworks".to_string());
-    let state = Arc::new(AppState {
-        storage: Storage::new(s3_client, bucket),
-    });
+    let storage = Storage::from_env().await;
+    let database = match std::env::var("DATABASE_URL") {
+        Ok(database_url) => Some(postgres_pool(&database_url).await),
+        Err(_) => {
+            tracing::info!("DATABASE_URL is not configured; database hello route is disabled");
+            None
+        }
+    };
+    let state = Arc::new(AppState { storage, database });
 
     let app = Router::new()
         .route("/", get(routes::home))
+        .route("/db/hello", get(routes::database_hello))
         .route("/artwork/{id}", get(routes::artwork))
         .route("/artwork/{id}/image/{file}", get(routes::artwork_image))
         .route("/health", get(|| async { StatusCode::OK }))

@@ -3,6 +3,7 @@
 .direnv/
 .env
 .secrets/
+.local/
 result
 
 ### Terraform

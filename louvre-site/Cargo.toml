@@ -12,9 +12,8 @@ path = "src/main.rs"
 dev = ["dep:tower-livereload"]
 
 [dependencies]
-aws-config.workspace = true
-aws-sdk-s3.workspace = true
 axum.workspace = true
+louvre-storage = { path = "../louvre-storage" }
 louvre-tw-merge = { path = "../louvre-tw-merge" }
 maud.workspace = true
 tokio.workspace = true

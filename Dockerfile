@@ -14,12 +14,18 @@ RUN npm install --no-save @tailwindcss/cli@4.3.3 tailwindcss@4.3.3 \
 
 FROM rust:1.94-bookworm AS builder
 
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y libpq-dev pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY Cargo.toml Cargo.lock ./
 COPY louvre-site/Cargo.toml louvre-site/Cargo.toml
+COPY louvre-storage/Cargo.toml louvre-storage/Cargo.toml
 COPY louvre-tw-merge/Cargo.toml louvre-tw-merge/Cargo.toml
 COPY louvre-site louvre-site
+COPY louvre-storage louvre-storage
 COPY louvre-tw-merge louvre-tw-merge
 COPY --from=css /app/louvre-site/src/static/css/site.css louvre-site/src/static/css/site.css
 COPY --from=css /app/louvre-site/src/static/css/site.css.br louvre-site/src/static/css/site.css.br
@@ -29,7 +35,7 @@ RUN cargo build -p louvre-site --bin louvre --release --locked
 FROM debian:bookworm-slim
 
 RUN apt-get update \
-    && apt-get install --no-install-recommends -y ca-certificates \
+    && apt-get install --no-install-recommends -y ca-certificates libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

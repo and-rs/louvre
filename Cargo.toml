@@ -1,5 +1,5 @@
 [workspace]
-members = ["louvre-site", "louvre-tw-merge"]
+members = ["louvre-site", "louvre-storage", "louvre-tw-merge"]
 default-members = ["louvre-site"]
 resolver = "3"
 
@@ -12,6 +12,8 @@ version = "0.1.0"
 aws-config = { version = "1", features = ["behavior-version-latest"] }
 aws-sdk-s3 = "1"
 axum = "0.8"
+diesel = { version = "2.3", features = ["postgres"] }
+diesel-async = { version = "0.7", features = ["postgres", "bb8"] }
 http = "1"
 http-body-util = "0.1"
 maud = "0.27"

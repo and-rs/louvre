@@ -13,11 +13,11 @@ pub struct Storage {
 }
 
 impl Storage {
-    pub fn new(client: Client, bucket: impl Into<String>) -> Self {
-        Self {
-            client,
-            bucket: bucket.into(),
-        }
+    pub async fn from_env() -> Self {
+        let aws_config = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
+        let client = Client::new(&aws_config);
+        let bucket = std::env::var("S3_BUCKET").unwrap_or_else(|_| "louvre-artworks".to_string());
+        Self { client, bucket }
     }
 
     pub async fn get(&self, key: &str) -> Result<Vec<u8>, StorageError> {
