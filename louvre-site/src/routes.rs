@@ -1,68 +1,155 @@
 use crate::templates::{self, PageMetadata};
 use axum::{
+    Form,
     extract::{Path, State},
     http::{
-        StatusCode,
+        HeaderValue, StatusCode,
         header::{CACHE_CONTROL, CONTENT_TYPE},
     },
-    response::{IntoResponse, Response},
+    response::{IntoResponse, Redirect, Response},
 };
-use louvre_storage::{DbPool, Storage, StorageError};
+use axum_login::AuthSession;
+use louvre_auth::{Credentials, StudioBackend};
+use louvre_storage::{PgPool, Storage, StorageError};
 use std::sync::Arc;
 
 pub struct AppState {
     pub storage: Storage,
-    pub database: Option<DbPool>,
+    pub database: PgPool,
+    pub studio_enabled: bool,
 }
 
-pub async fn home(State(state): State<Arc<AppState>>) -> Response {
-    let message = match &state.database {
-        Some(pool) => match greeting(pool).await {
-            Ok(message) => message,
-            Err(status) => return status.into_response(),
+pub async fn studio_login(
+    State(state): State<Arc<AppState>>,
+    auth_session: AuthSession<StudioBackend>,
+) -> Response {
+    if !state.studio_enabled {
+        return studio_login_unavailable();
+    }
+    if auth_session.user.is_some() {
+        return no_store(Redirect::to("/studio").into_response());
+    }
+
+    render_studio_login(None)
+}
+
+pub async fn studio_login_submit(
+    State(state): State<Arc<AppState>>,
+    mut auth_session: AuthSession<StudioBackend>,
+    Form(credentials): Form<Credentials>,
+) -> Response {
+    if !state.studio_enabled {
+        return studio_login_unavailable();
+    }
+
+    match auth_session.authenticate(credentials).await {
+        Ok(Some(user)) => match auth_session.login(&user).await {
+            Ok(()) => no_store(Redirect::to("/studio").into_response()),
+            Err(error) => {
+                tracing::error!(%error, "failed to create studio session");
+                StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            }
         },
-        None => "Hello, world!".to_owned(),
+        Ok(None) => no_store(
+            (
+                StatusCode::UNAUTHORIZED,
+                templates::page(
+                    PageMetadata {
+                        page_title: Some("Studio sign in"),
+                        description: "Sign in to the private artwork workspace.",
+                    },
+                    templates::studio_login(Some("Those details did not match."), false),
+                ),
+            )
+                .into_response(),
+        ),
+        Err(error) => {
+            tracing::error!(%error, "studio authentication failed");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+pub async fn studio(auth_session: AuthSession<StudioBackend>) -> Response {
+    let Some(user) = auth_session.user else {
+        return Redirect::to("/studio/login").into_response();
     };
 
+    no_store(
+        templates::page(
+            PageMetadata {
+                page_title: Some("Studio"),
+                description: "Private artwork management workspace.",
+            },
+            templates::studio(&user.username),
+        )
+        .into_response(),
+    )
+}
+
+pub async fn studio_logout(mut auth_session: AuthSession<StudioBackend>) -> Response {
+    match auth_session.logout().await {
+        Ok(_) => no_store(Redirect::to("/studio/login").into_response()),
+        Err(error) => {
+            tracing::error!(%error, "failed to end studio session");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+fn render_studio_login(error: Option<&str>) -> Response {
+    no_store(
+        templates::page(
+            PageMetadata {
+                page_title: Some("Studio sign in"),
+                description: "Sign in to the private artwork workspace.",
+            },
+            templates::studio_login(error, false),
+        )
+        .into_response(),
+    )
+}
+
+fn studio_login_unavailable() -> Response {
+    no_store(
+        (
+            StatusCode::SERVICE_UNAVAILABLE,
+            templates::page(
+                PageMetadata {
+                    page_title: Some("Studio unavailable"),
+                    description: "The private artwork workspace is not configured.",
+                },
+                templates::studio_login(None, true),
+            ),
+        )
+            .into_response(),
+    )
+}
+
+fn no_store(mut response: Response) -> Response {
+    response
+        .headers_mut()
+        .insert(CACHE_CONTROL, HeaderValue::from_static("private, no-store"));
+    response
+}
+
+pub async fn home() -> Response {
     templates::page(
         PageMetadata {
             page_title: None,
             description: "An artwork publishing platform.",
         },
-        templates::home(&message),
+        templates::home(),
     )
     .into_response()
 }
 
-pub async fn database_hello(State(state): State<Arc<AppState>>) -> Response {
-    let Some(pool) = &state.database else {
-        return (
-            StatusCode::SERVICE_UNAVAILABLE,
-            "DATABASE_URL is not configured",
-        )
-            .into_response();
-    };
-
-    match greeting(pool).await {
-        Ok(message) => message.into_response(),
-        Err(status) => status.into_response(),
-    }
-}
-
-async fn greeting(pool: &DbPool) -> Result<String, StatusCode> {
-    let mut connection = match pool.get().await {
-        Ok(connection) => connection,
+pub async fn health(State(state): State<Arc<AppState>>) -> StatusCode {
+    match state.database.acquire().await {
+        Ok(_) => StatusCode::OK,
         Err(error) => {
-            tracing::warn!(%error, "failed to get PostgreSQL connection");
-            return Err(StatusCode::SERVICE_UNAVAILABLE);
-        }
-    };
-
-    match louvre_storage::hello(&mut connection).await {
-        Ok(message) => Ok(message),
-        Err(error) => {
-            tracing::warn!(%error, "PostgreSQL hello query failed");
-            Err(StatusCode::INTERNAL_SERVER_ERROR)
+            tracing::warn!(%error, "failed to get PostgreSQL connection for health check");
+            StatusCode::SERVICE_UNAVAILABLE
         }
     }
 }

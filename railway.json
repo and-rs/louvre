@@ -7,12 +7,14 @@
       "Cargo.toml",
       "Dockerfile",
       "railway.json",
+      "louvre-auth/**",
       "louvre-site/**",
       "louvre-storage/**",
       "louvre-tw-merge/**"
     ]
   },
   "deploy": {
+    "preDeployCommand": ["louvre migrate"],
     "healthcheckPath": "/health",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",

@@ -2,6 +2,14 @@
 run:
     ./scripts/run.sh
 
+# Apply pending database migrations to DATABASE_URL.
+migrate:
+    cargo run -p louvre-site --bin louvre -- migrate
+
+# Generate a stable Argon2 hash for STUDIO_PASSWORD_HASH.
+studio-password:
+    cargo run -p louvre-auth --features hash-cli --bin studio-password-hash
+
 # Format Rust, templates, styles, and JavaScript.
 format:
     ./scripts/format.sh

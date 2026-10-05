@@ -5,9 +5,11 @@ mod components;
 mod home;
 mod layout;
 mod not_found;
+mod studio;
 
 pub use artwork::artwork;
 pub use components::{ButtonSize, ButtonVariant, LinkTarget, button_link, footer, theme_toggle};
 pub use home::home;
 pub use layout::{PageMetadata, page};
 pub use not_found::not_found;
+pub use studio::{studio, studio_login};

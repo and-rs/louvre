@@ -1,5 +1,11 @@
 # Template Roadmap
 
+# in simple words
+- [ ] de-slopify latest auth and SQLx setup
+- [ ] rework footer styling
+- [ ] test security paths for /studio login
+- [ ] upload first test artwork
+
 ## 1. Local-First Foundation
 
 - [ ] Move site identity into one typed config: name, public URL, description, social image, footer links, and optional analytics settings.

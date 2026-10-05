@@ -1,0 +1,29 @@
+[package]
+name = "louvre-auth"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[features]
+hash-cli = ["dep:rpassword"]
+
+[[bin]]
+name = "studio-password-hash"
+path = "src/bin/studio-password-hash.rs"
+required-features = ["hash-cli"]
+
+[dependencies]
+axum-login.workspace = true
+password-auth.workspace = true
+rpassword = { version = "7", optional = true }
+serde.workspace = true
+sqlx.workspace = true
+time.workspace = true
+tokio.workspace = true
+tower-sessions.workspace = true
+tower-sessions-sqlx-store.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+axum.workspace = true
+tower = { workspace = true, features = ["util"] }

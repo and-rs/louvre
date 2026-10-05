@@ -59,9 +59,12 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
   export DATABASE_URL="postgres://louvre@127.0.0.1:55432/louvre"
 fi
 
+cargo run -p louvre-site --bin louvre -- migrate
+
 # Regenerate styles before restarting Axum; ignore generated CSS to avoid a watch loop.
 cargo watch -d 0.2 \
   -w Cargo.toml -w Cargo.lock \
+  -w louvre-auth/Cargo.toml -w louvre-auth/src \
   -w louvre-site/Cargo.toml -w louvre-site/src \
   -w louvre-storage/Cargo.toml -w louvre-storage/src \
   -i "$css_output" \

@@ -41,8 +41,6 @@
               biome
               prek
               git
-              libpq
-              pkg-config
               postgresql_17
             ];
             shellHook = ''

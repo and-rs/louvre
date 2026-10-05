@@ -13,6 +13,8 @@ dev = ["dep:tower-livereload"]
 
 [dependencies]
 axum.workspace = true
+axum-login.workspace = true
+louvre-auth = { path = "../louvre-auth" }
 louvre-storage = { path = "../louvre-storage" }
 louvre-tw-merge = { path = "../louvre-tw-merge" }
 maud.workspace = true
