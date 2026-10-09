@@ -7,12 +7,17 @@ const AND_RS_GITHUB_URL: &str = "https://github.com/and-rs";
 
 pub fn footer() -> Markup {
     html! {
-        div class="border-t py-8 sm:py-10" {
+        div class="rounded-lg border p-2 shadow-sm backdrop-blur" {
             div class="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between" {
-                div class="max-w-sm" {
+                div class="max-w-sm px-2" {
                     a class="text-base font-semibold tracking-tight" href="/" { "Louvre" }
-                    p class="mt-2 text-sm leading-6 text-muted-foreground" {
-                        "A server-rendered site baseline."
+                    span class="text-sm leading-6 text-muted-foreground" {
+                        p {
+                            "A server-rendered site baseline."
+                        }
+                        p {
+                            "Copyright (c) 2026 Louvre. All Rights Reserved."
+                        }
                     }
                 }
                 div class="flex flex-col items-start gap-4 sm:items-end" {
@@ -47,9 +52,6 @@ pub fn footer() -> Markup {
                         None,
                     ))
                 }
-            }
-            div class="mt-8 border-t pt-6 text-xs text-muted-foreground" {
-                p { "Copyright (c) 2026 Louvre. All Rights Reserved." }
             }
         }
     }

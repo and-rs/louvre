@@ -33,7 +33,7 @@ pub fn button_link(
         ButtonVariant::Secondary => "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ButtonVariant::Ghost => "hover:bg-accent hover:text-accent-foreground",
         ButtonVariant::Link => {
-            "bg-transparent hover:bg-accent/40 hover:text-accent-foreground bg-background hover:underline underline-offset-3"
+            "bg-transparent hover:bg-accent/80 hover:text-accent-foreground bg-background hover:underline underline-offset-3"
         }
         ButtonVariant::Destructive => "bg-destructive text-white hover:bg-destructive/90",
     };
