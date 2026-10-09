@@ -1,8 +1,8 @@
-# Template Roadmap
+# Roadmap
 
-# in simple words
+## in simple words
+
 - [ ] de-slopify latest auth and SQLx setup
-- [ ] rework footer styling
 - [ ] test security paths for /studio login
 - [ ] upload first test artwork
 
@@ -16,25 +16,16 @@
 
 ## 2. Public-Site Baseline
 
-- [x] Refactor page inputs into a metadata struct.
 - [ ] Add canonical, Open Graph, Twitter, and theme-color metadata.
 - [ ] Add `/robots.txt` and `/sitemap.xml` from known static routes.
 - [ ] Add a social preview image once branding is stable.
-- [x] Keep the shared layout, theme toggle, footer, buttons, and Phosphor icon workflow as the default design system.
 
 ## 3. Developer Experience
 
-- [x] Run Tailwind, Rustywind, and Axum through one development watch flow.
-- [x] Reload the browser after source changes without CSS polling.
-- [x] Document how to add a route, page, component, icon, and static asset.
-- [x] Document the local development and production build flows.
 - [ ] Add a concise "start a new site from this template" guide.
 
 ## 4. Deployment And Operations
 
-- [x] Build content-versioned static URLs for production.
-- [x] Serve Brotli-compressed static assets in production.
-- [x] Add graceful shutdown.
 - [ ] Split health checks into liveness and readiness endpoints.
 - [ ] Define production logging and error-reporting expectations.
 - [ ] Add appropriate security headers for public pages.
@@ -42,8 +33,6 @@
 
 ## 5. Quality Gates
 
-- [x] Format, Tailwind generation, Rustywind, lint, and test checks exist.
-- [x] Run `just check` in CI.
 - [ ] Add route-level HTTP tests for standard pages and failures.
 - [ ] Cover production asset versioning and Brotli behavior in tests.
 - [ ] Add an end-to-end smoke check for the production container.
@@ -54,3 +43,18 @@
 - [ ] Load analytics only when its environment variables are configured.
 - [ ] Track meaningful CTA, outbound-link, and footer-link events.
 - [ ] Add analytics dashboard goals and funnels before adopting more observability.
+
+## done
+
+- [x] Keep the shared layout, theme toggle, footer, buttons, and Phosphor icon workflow as the default design system.
+- [x] Refactor page inputs into a metadata struct.
+- [x] Build content-versioned static URLs for production.
+- [x] Serve Brotli-compressed static assets in production.
+- [x] Add graceful shutdown.
+- [x] Run Tailwind, Rustywind, and Axum through one development watch flow.
+- [x] Reload the browser after source changes without CSS polling.
+- [x] Document how to add a route, page, component, icon, and static asset.
+- [x] Document the local development and production build flows.
+- [x] Rework footer styling
+- [x] Format, Tailwind generation, Rustywind, lint, and test checks exist.
+- [x] Run `just check` in CI.
