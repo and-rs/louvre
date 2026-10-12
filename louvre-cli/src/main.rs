@@ -138,6 +138,7 @@ fn quote_env_value(value: &str) -> String {
         match character {
             '\\' => quoted.push_str("\\\\"),
             '"' => quoted.push_str("\\\""),
+            '$' => quoted.push_str("\\$"),
             '\n' => quoted.push_str("\\n"),
             '\r' => quoted.push_str("\\r"),
             '\t' => quoted.push_str("\\t"),
@@ -269,7 +270,7 @@ mod tests {
         assert!(updated.contains("# keep this comment\n"));
         assert!(updated.contains("DATABASE_URL=postgres://localhost/db\n"));
         assert!(updated.contains("STUDIO_USERNAME=\"new \\\"owner\\\"\"\n"));
-        assert!(updated.contains("STUDIO_PASSWORD_HASH=\"$argon2id$hash\"\n"));
+        assert!(updated.contains("STUDIO_PASSWORD_HASH=\"\\$argon2id\\$hash\"\n"));
         assert_eq!(updated.matches("STUDIO_USERNAME=").count(), 1);
         assert_eq!(updated.matches("STUDIO_PASSWORD_HASH=").count(), 1);
     }
