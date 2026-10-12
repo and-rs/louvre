@@ -3,6 +3,7 @@
 ## Docs
 
 - Do not document each justfile command in the README, just mention its existance.
+- Do not churn README changes. Only edit README when the user requests.
 
 ## SVG Styling
 
