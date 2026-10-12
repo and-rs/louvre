@@ -10,14 +10,14 @@ use tower_sessions::{
 use tower_sessions_sqlx_store::PostgresStore;
 
 #[derive(Clone)]
-struct AdminAccount {
-    username: String,
-    password_hash: String,
+pub struct StudioBackend {
+    account: Option<AdminAccount>,
 }
 
 #[derive(Clone)]
-pub struct StudioBackend {
-    account: Option<AdminAccount>,
+struct AdminAccount {
+    username: String,
+    password_hash: String,
 }
 
 #[derive(Clone, Debug)]
@@ -34,22 +34,17 @@ pub struct Credentials {
 
 impl StudioBackend {
     pub fn from_env() -> Self {
-        let account = match (
+        match (
             std::env::var("STUDIO_USERNAME"),
             std::env::var("STUDIO_PASSWORD_HASH"),
         ) {
             (Ok(username), Ok(password_hash))
                 if !username.is_empty() && !password_hash.is_empty() =>
             {
-                Some(AdminAccount {
-                    username,
-                    password_hash,
-                })
+                Self::from_password_hash(username, password_hash)
             }
-            _ => None,
-        };
-
-        Self { account }
+            _ => Self { account: None },
+        }
     }
 
     pub fn from_password_hash(
@@ -68,14 +63,6 @@ impl StudioBackend {
 
     pub fn is_configured(&self) -> bool {
         self.account.is_some()
-    }
-
-    fn user_for(&self, username: &str) -> Option<StudioUser> {
-        let account = self.account.as_ref()?;
-        (account.username == username).then(|| StudioUser {
-            username: account.username.clone(),
-            password_hash: account.password_hash.clone(),
-        })
     }
 }
 
@@ -100,29 +87,40 @@ impl AuthnBackend for StudioBackend {
         &self,
         credentials: Self::Credentials,
     ) -> Result<Option<Self::User>, Self::Error> {
-        let Some(account) = self.account.as_ref() else {
+        let Some(account) = &self.account else {
             return Ok(None);
         };
 
         let username_matches = credentials.username == account.username;
         let password = credentials.password;
         let password_hash = account.password_hash.clone();
+        let hash_for_verification = password_hash.clone();
         let password_matches = tokio::task::spawn_blocking(move || {
-            password_auth::verify_password(password, &password_hash).is_ok()
+            password_auth::verify_password(password, &hash_for_verification).is_ok()
         })
         .await
         .unwrap_or(false);
 
-        Ok(if username_matches && password_matches {
-            self.user_for(&account.username)
-        } else {
-            None
-        })
+        Ok(
+            (username_matches && password_matches).then_some(StudioUser {
+                username: account.username.clone(),
+                password_hash,
+            }),
+        )
     }
 
     async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, Self::Error> {
-        Ok(self.user_for(user_id))
+        Ok(self.account.as_ref().and_then(|account| {
+            (account.username == *user_id).then(|| StudioUser {
+                username: account.username.clone(),
+                password_hash: account.password_hash.clone(),
+            })
+        }))
     }
+}
+
+pub fn generate_password_hash(password: impl AsRef<[u8]>) -> String {
+    password_auth::generate_hash(password)
 }
 
 pub fn session_store(pool: PgPool) -> PostgresStore {
@@ -161,22 +159,14 @@ pub fn spawn_session_cleanup(store: PostgresStore) -> JoinHandle<()> {
     })
 }
 
-pub fn generate_password_hash(password: impl AsRef<[u8]>) -> String {
-    password_auth::generate_hash(password)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn verifies_the_configured_account_and_password() {
-        let backend = StudioBackend {
-            account: Some(AdminAccount {
-                username: "owner".to_owned(),
-                password_hash: generate_password_hash("correct horse"),
-            }),
-        };
+    async fn authenticates_the_configured_account() {
+        let backend =
+            StudioBackend::from_password_hash("owner", generate_password_hash("correct horse"));
 
         let user = backend
             .authenticate(Credentials {
@@ -186,13 +176,13 @@ mod tests {
             .await
             .unwrap()
             .unwrap();
-
         assert_eq!(user.id(), "owner");
+
         assert!(
             backend
                 .authenticate(Credentials {
                     username: "owner".to_owned(),
-                    password: "incorrect".to_owned(),
+                    password: "wrong password".to_owned(),
                 })
                 .await
                 .unwrap()
@@ -211,27 +201,26 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn sessions_can_only_reload_the_configured_user() {
-        let backend = StudioBackend {
-            account: Some(AdminAccount {
+    async fn changed_credentials_invalidate_existing_session_auth_hashes() {
+        let old_backend =
+            StudioBackend::from_password_hash("owner", generate_password_hash("correct horse"));
+        let old_user = old_backend
+            .authenticate(Credentials {
                 username: "owner".to_owned(),
-                password_hash: generate_password_hash("correct horse"),
-            }),
-        };
+                password: "correct horse".to_owned(),
+            })
+            .await
+            .unwrap()
+            .unwrap();
 
-        assert!(
-            backend
-                .get_user(&"owner".to_owned())
-                .await
-                .unwrap()
-                .is_some()
-        );
-        assert!(
-            backend
-                .get_user(&"someone-else".to_owned())
-                .await
-                .unwrap()
-                .is_none()
-        );
+        let new_backend =
+            StudioBackend::from_password_hash("owner", generate_password_hash("new horse"));
+        let new_user = new_backend
+            .get_user(&"owner".to_owned())
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_ne!(old_user.session_auth_hash(), new_user.session_auth_hash());
     }
 }

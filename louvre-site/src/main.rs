@@ -24,35 +24,9 @@ use tower_livereload::LiveReloadLayer;
 
 #[tokio::main]
 async fn main() {
-    match std::env::args().nth(1).as_deref() {
-        Some("migrate") => {
-            let database_url = std::env::var("DATABASE_URL")
-                .expect("DATABASE_URL must be set to run database migrations");
-            if let Err(error) = apply_migrations(&database_url).await {
-                eprintln!("database migration failed: {error}");
-                std::process::exit(1);
-            }
-            println!("Database migrations are up to date.");
-            return;
-        }
-        Some(command) => {
-            eprintln!("unknown command: {command}");
-            std::process::exit(2);
-        }
-        None => {}
-    }
-
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .init();
-
-    let studio_backend = StudioBackend::from_env();
-    let studio_enabled = studio_backend.is_configured();
-    if !studio_enabled {
-        tracing::info!(
-            "studio is disabled; set STUDIO_USERNAME and STUDIO_PASSWORD_HASH to enable it"
-        );
-    }
 
     let static_files = ServeDir::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/static"));
     #[cfg(feature = "dev")]
@@ -71,10 +45,15 @@ async fn main() {
     let database = postgres_pool(&database_url)
         .await
         .expect("failed to connect to PostgreSQL");
+    let studio_backend = StudioBackend::from_env();
+    if !studio_backend.is_configured() {
+        tracing::warn!(
+            "studio sign-in is unavailable; set STUDIO_USERNAME and STUDIO_PASSWORD_HASH"
+        );
+    }
     let state = Arc::new(AppState {
         storage,
         database: database.clone(),
-        studio_enabled,
     });
 
     let session_store = louvre_auth::session_store(database.clone());
@@ -117,15 +96,6 @@ async fn main() {
         .await
         .expect("server failed");
     session_cleanup.abort();
-}
-
-async fn apply_migrations(
-    database_url: &str,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let database = postgres_pool(database_url).await?;
-    louvre_storage::run_migrations(&database).await?;
-    louvre_auth::migrate_sessions(&database).await?;
-    Ok(())
 }
 
 async fn shutdown_signal(session_cleanup: AbortHandle) {

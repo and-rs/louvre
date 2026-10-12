@@ -16,16 +16,9 @@ use std::sync::Arc;
 pub struct AppState {
     pub storage: Storage,
     pub database: PgPool,
-    pub studio_enabled: bool,
 }
 
-pub async fn studio_login(
-    State(state): State<Arc<AppState>>,
-    auth_session: AuthSession<StudioBackend>,
-) -> Response {
-    if !state.studio_enabled {
-        return studio_login_unavailable();
-    }
+pub async fn studio_login(auth_session: AuthSession<StudioBackend>) -> Response {
     if auth_session.user.is_some() {
         return no_store(Redirect::to("/studio").into_response());
     }
@@ -34,14 +27,9 @@ pub async fn studio_login(
 }
 
 pub async fn studio_login_submit(
-    State(state): State<Arc<AppState>>,
     mut auth_session: AuthSession<StudioBackend>,
     Form(credentials): Form<Credentials>,
 ) -> Response {
-    if !state.studio_enabled {
-        return studio_login_unavailable();
-    }
-
     match auth_session.authenticate(credentials).await {
         Ok(Some(user)) => match auth_session.login(&user).await {
             Ok(()) => no_store(Redirect::to("/studio").into_response()),
@@ -58,7 +46,7 @@ pub async fn studio_login_submit(
                         page_title: Some("Studio sign in"),
                         description: "Sign in to the private artwork workspace.",
                     },
-                    templates::studio_login(Some("Those details did not match."), false),
+                    templates::studio_login(Some("Those details did not match.")),
                 ),
             )
                 .into_response(),
@@ -104,25 +92,9 @@ fn render_studio_login(error: Option<&str>) -> Response {
                 page_title: Some("Studio sign in"),
                 description: "Sign in to the private artwork workspace.",
             },
-            templates::studio_login(error, false),
+            templates::studio_login(error),
         )
         .into_response(),
-    )
-}
-
-fn studio_login_unavailable() -> Response {
-    no_store(
-        (
-            StatusCode::SERVICE_UNAVAILABLE,
-            templates::page(
-                PageMetadata {
-                    page_title: Some("Studio unavailable"),
-                    description: "The private artwork workspace is not configured.",
-                },
-                templates::studio_login(None, true),
-            ),
-        )
-            .into_response(),
     )
 }
 

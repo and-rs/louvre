@@ -12,13 +12,9 @@ if [[ -f .secrets/louvre-app-creds.json ]]; then
   export AWS_SECRET_ACCESS_KEY
 fi
 
-css_input="louvre-site/src/static/css/input.css"
-css_output="louvre-site/src/static/css/site.css"
-templates="louvre-site/src/templates"
-
-tailwindcss -i "$css_input" -o "$css_output" --silent
-
 local_pgdata="$repo_root/.local/postgres"
+local_database_url="postgres://louvre@127.0.0.1:55432/louvre"
+local_database_url_pattern='^postgres(ql)?://([^/@]+@)?(localhost|127\.0\.0\.1|\[::1\]):55432/louvre([?].*)?$'
 local_pg_started=0
 stop_local_postgres() {
   if (( local_pg_started )); then
@@ -29,7 +25,9 @@ trap stop_local_postgres EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-if [[ -z "${DATABASE_URL:-}" ]]; then
+if [[ -z "${DATABASE_URL:-}" || "${DATABASE_URL:-}" =~ $local_database_url_pattern ]]; then
+  printf 'Using managed local PostgreSQL at 127.0.0.1:55432 (%s)\n' "$local_pgdata"
+
   for command in initdb pg_ctl psql createdb; do
     if ! command -v "$command" >/dev/null 2>&1; then
       printf 'error: %s is unavailable; run this inside `nix develop`\n' "$command" >&2
@@ -56,10 +54,21 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
     createdb -h 127.0.0.1 -p 55432 -U louvre louvre
   fi
 
-  export DATABASE_URL="postgres://louvre@127.0.0.1:55432/louvre"
+  if [[ -z "${DATABASE_URL:-}" ]]; then
+    export DATABASE_URL="$local_database_url"
+  fi
 fi
 
-cargo run -p louvre-site --bin louvre -- migrate
+if ! cargo run -p louvre-cli -- db check; then
+  printf '\n`just run` stopped before generating styles or starting the watcher.\n' >&2
+  exit 1
+fi
+
+css_input="louvre-site/src/static/css/input.css"
+css_output="louvre-site/src/static/css/site.css"
+templates="louvre-site/src/templates"
+
+tailwindcss -i "$css_input" -o "$css_output" --silent
 
 # Regenerate styles before restarting Axum; ignore generated CSS to avoid a watch loop.
 cargo watch -d 0.2 \
@@ -70,4 +79,4 @@ cargo watch -d 0.2 \
   -i "$css_output" \
   -s "tailwindcss -i $css_input -o $css_output --silent && \
   rustywind --write --output-css-file $css_output $templates && \
-  cargo run -p louvre-site --bin louvre --features dev"
+  cargo run -p louvre-site --bin louvre-server --features dev"

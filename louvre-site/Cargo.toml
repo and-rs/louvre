@@ -5,7 +5,7 @@ edition.workspace = true
 rust-version.workspace = true
 
 [[bin]]
-name = "louvre"
+name = "louvre-server"
 path = "src/main.rs"
 
 [features]

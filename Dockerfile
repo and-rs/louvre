@@ -18,17 +18,20 @@ WORKDIR /app
 
 COPY Cargo.toml Cargo.lock ./
 COPY louvre-auth/Cargo.toml louvre-auth/Cargo.toml
+COPY louvre-cli/Cargo.toml louvre-cli/Cargo.toml
 COPY louvre-site/Cargo.toml louvre-site/Cargo.toml
 COPY louvre-storage/Cargo.toml louvre-storage/Cargo.toml
 COPY louvre-tw-merge/Cargo.toml louvre-tw-merge/Cargo.toml
 COPY louvre-auth louvre-auth
+COPY louvre-cli louvre-cli
 COPY louvre-site louvre-site
 COPY louvre-storage louvre-storage
 COPY louvre-tw-merge louvre-tw-merge
 COPY --from=css /app/louvre-site/src/static/css/site.css louvre-site/src/static/css/site.css
 COPY --from=css /app/louvre-site/src/static/css/site.css.br louvre-site/src/static/css/site.css.br
 
-RUN cargo build -p louvre-site --bin louvre --release --locked
+RUN cargo build -p louvre-site --bin louvre-server --release --locked \
+    && cargo build -p louvre-cli --bin louvre --release --locked
 
 FROM debian:bookworm-slim
 
@@ -39,8 +42,9 @@ RUN apt-get update \
 WORKDIR /app
 
 COPY --from=builder /app/target/release/louvre /usr/local/bin/louvre
+COPY --from=builder /app/target/release/louvre-server /usr/local/bin/louvre-server
 COPY --from=builder /app/louvre-site/src/static louvre-site/src/static
 
 ENV RUST_LOG=info
 
-CMD ["louvre"]
+CMD ["louvre-server"]

@@ -33,7 +33,7 @@ pub fn studio(username: &str) -> Markup {
     }
 }
 
-pub fn studio_login(error: Option<&str>, unavailable: bool) -> Markup {
+pub fn studio_login(error: Option<&str>) -> Markup {
     html! {
         section class="mx-auto max-w-md" {
             header class="mb-8" {
@@ -45,42 +45,36 @@ pub fn studio_login(error: Option<&str>, unavailable: bool) -> Markup {
             }
 
             div class="rounded-xl border border-border bg-card p-6 sm:p-8" {
-                @if unavailable {
-                    p role="status" class="text-sm leading-6 text-muted-foreground" {
-                        "Studio sign-in is not configured. Set STUDIO_USERNAME and STUDIO_PASSWORD_HASH to enable it."
+                @if let Some(error) = error {
+                    p role="alert" class="mb-5 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" {
+                        (error)
                     }
-                } @else {
-                    @if let Some(error) = error {
-                        p role="alert" class="mb-5 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" {
-                            (error)
-                        }
-                    }
+                }
 
-                    form method="post" action="/studio/login" class="space-y-5" {
-                        div class="space-y-2" {
-                            label for="username" class="text-sm font-medium text-foreground" { "Username" }
-                            input
-                                id="username"
-                                name="username"
-                                type="text"
-                                autocomplete="username"
-                                required
-                                autofocus
-                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground transition-shadow outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring";
-                        }
-                        div class="space-y-2" {
-                            label for="password" class="text-sm font-medium text-foreground" { "Password" }
-                            input
-                                id="password"
-                                name="password"
-                                type="password"
-                                autocomplete="current-password"
-                                required
-                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground transition-shadow outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring";
-                        }
-                        button type="submit" class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors focus-visible:outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring" {
-                            "Sign in"
-                        }
+                form method="post" action="/studio/login" class="space-y-5" {
+                    div class="space-y-2" {
+                        label for="username" class="text-sm font-medium text-foreground" { "Username" }
+                        input
+                            id="username"
+                            name="username"
+                            type="text"
+                            autocomplete="username"
+                            required
+                            autofocus
+                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground transition-shadow outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring";
+                    }
+                    div class="space-y-2" {
+                        label for="password" class="text-sm font-medium text-foreground" { "Password" }
+                        input
+                            id="password"
+                            name="password"
+                            type="password"
+                            autocomplete="current-password"
+                            required
+                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground transition-shadow outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring";
+                    }
+                    button type="submit" class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors focus-visible:outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring" {
+                        "Sign in"
                     }
                 }
             }
@@ -94,7 +88,7 @@ mod tests {
 
     #[test]
     fn login_form_uses_accessible_fields_and_shared_tokens() {
-        let markup = studio_login(None, false).into_string();
+        let markup = studio_login(None).into_string();
 
         assert!(markup.contains("autocomplete=\"username\""));
         assert!(markup.contains("autocomplete=\"current-password\""));

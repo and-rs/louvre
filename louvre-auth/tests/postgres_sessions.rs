@@ -60,16 +60,25 @@ async fn a_session_created_by_one_instance_is_shared_and_revocable_by_another() 
         .expect("set TEST_DATABASE_URL to run this PostgreSQL integration test");
     let pool_one = PgPool::connect(&database_url).await.unwrap();
     let pool_two = PgPool::connect(&database_url).await.unwrap();
-    PostgresStore::new(pool_one.clone())
-        .migrate()
-        .await
-        .unwrap();
+    louvre_auth::migrate_sessions(&pool_one).await.unwrap();
 
     let password_hash = louvre_auth::generate_password_hash("correct horse");
-    let backend_one = StudioBackend::from_password_hash("owner", &password_hash);
+    let backend_one = StudioBackend::from_password_hash("owner", password_hash.clone());
     let backend_two = StudioBackend::from_password_hash("owner", password_hash);
-    let instance_one = app(pool_one, backend_one);
-    let instance_two = app(pool_two, backend_two);
+    let instance_one = app(pool_one.clone(), backend_one);
+    let instance_two = app(pool_two.clone(), backend_two);
+
+    let bad_password = instance_one
+        .clone()
+        .oneshot(
+            Request::post("/studio/login")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .body(axum::body::Body::from("username=owner&password=incorrect"))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(bad_password.status(), StatusCode::UNAUTHORIZED);
 
     let login_response = instance_one
         .clone()
@@ -107,10 +116,53 @@ async fn a_session_created_by_one_instance_is_shared_and_revocable_by_another() 
         .unwrap();
     assert_eq!(on_second_instance.status(), StatusCode::OK);
 
-    let logout_response = instance_two
+    let changed_backend = StudioBackend::from_password_hash(
+        "owner",
+        louvre_auth::generate_password_hash("new horse"),
+    );
+    let instance_after_change = app(pool_two.clone(), changed_backend);
+    let after_password_change = instance_after_change
+        .clone()
+        .oneshot(
+            Request::get("/studio")
+                .header(header::COOKIE, &cookie)
+                .body(axum::body::Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(
+        after_password_change.status(),
+        StatusCode::TEMPORARY_REDIRECT
+    );
+
+    let new_login = instance_after_change
+        .clone()
+        .oneshot(
+            Request::post("/studio/login")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .body(axum::body::Body::from("username=owner&password=new+horse"))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(new_login.status(), StatusCode::OK);
+    let new_cookie = new_login
+        .headers()
+        .get(header::SET_COOKIE)
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .split(';')
+        .next()
+        .unwrap()
+        .to_owned();
+
+    let logout_response = instance_after_change
+        .clone()
         .oneshot(
             Request::post("/studio/logout")
-                .header(header::COOKIE, &cookie)
+                .header(header::COOKIE, &new_cookie)
                 .body(axum::body::Body::empty())
                 .unwrap(),
         )
@@ -118,10 +170,10 @@ async fn a_session_created_by_one_instance_is_shared_and_revocable_by_another() 
         .unwrap();
     assert_eq!(logout_response.status(), StatusCode::OK);
 
-    let after_logout = instance_one
+    let after_logout = instance_after_change
         .oneshot(
             Request::get("/studio")
-                .header(header::COOKIE, cookie)
+                .header(header::COOKIE, new_cookie)
                 .body(axum::body::Body::empty())
                 .unwrap(),
         )

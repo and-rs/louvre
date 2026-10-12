@@ -9,9 +9,13 @@ run:
 migrate:
   @cargo run -p louvre-cli -- migrate
 
-# Create or replace the studio admin using DATABASE_URL or the local dev database.
-admin: migrate
-  @cargo run -p louvre-cli -- admin set
+# Prompt for studio admin credentials and configure the linked Railway app.
+railway-admin:
+  ./scripts/set-railway-admin.sh
+
+# Prompt for studio admin credentials and save them to the ignored local .env.
+local-admin:
+  @cargo run -p louvre-cli -- admin local
 
 # Format Rust, templates, styles, and JavaScript.
 format:
