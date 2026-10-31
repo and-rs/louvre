@@ -25,6 +25,19 @@ format:
 check:
   ./scripts/check.sh
 
+# Install the browser E2E dependencies and Chromium.
+e2e-install:
+  npm ci
+  npx playwright install chromium
+
+# Run the Studio publishing flow in Chromium against isolated PostgreSQL and S3 test services.
+e2e:
+  bash scripts/e2e.sh test
+
+# Start the isolated E2E app so it can be inspected with the Playwright MCP browser.
+e2e-serve:
+  bash scripts/e2e.sh serve
+
 # Brotli-compress browser assets.
 compress:
   ./scripts/compress.sh

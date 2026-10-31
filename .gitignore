@@ -1,4 +1,8 @@
 /target
+/node_modules/
+/.playwright-mcp/
+/playwright-report/
+/test-results/
 /louvre-site/src/static/css/site.css
 .direnv/
 .env

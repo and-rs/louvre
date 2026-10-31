@@ -17,7 +17,15 @@ pub struct Storage {
 impl Storage {
     pub async fn from_env() -> Self {
         let aws_config = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
-        let client = Client::new(&aws_config);
+        let client = if let Ok(endpoint_url) = std::env::var("S3_ENDPOINT_URL") {
+            let config = aws_sdk_s3::config::Builder::from(&aws_config)
+                .endpoint_url(endpoint_url)
+                .force_path_style(true)
+                .build();
+            Client::from_conf(config)
+        } else {
+            Client::new(&aws_config)
+        };
         let bucket = std::env::var("S3_BUCKET").unwrap_or_else(|_| "louvre-artworks".to_string());
         Self { client, bucket }
     }

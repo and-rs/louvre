@@ -1,0 +1,14 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "servers": {
+      "playwright": {
+        "type": "local",
+        "command": ["/bin/sh", "scripts/playwright-mcp.sh"],
+        "timeout": {
+          "startup": 120000
+        }
+      }
+    }
+  }
+}

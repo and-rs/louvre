@@ -22,3 +22,7 @@
 - µJS intercepts clicks on every same-origin anchor and swaps the response into `<main>`.
 - Link to HTML pages only. Raw assets (images, ZIPs, downloads) must carry `data-mu="false"`, or open via `target="_blank"` / `download`.
 - Images are embedded with `<img src=...>`, never as click targets of bare asset URLs.
+
+## UI Verification
+
+- For user-facing workflows, run `just e2e`; unit and route checks alone are not end-to-end verification.

@@ -13,4 +13,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v20
+      - run: nix develop --command npm ci
+      - run: nix develop --command npx playwright install --with-deps chromium
       - run: nix develop --command just check
+      - run: nix develop --command just e2e
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-e2e-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14

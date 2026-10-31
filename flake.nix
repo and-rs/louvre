@@ -39,6 +39,7 @@
               awscli2
               just
               biome
+              nodejs_22
               prek
               git
               postgresql_17
