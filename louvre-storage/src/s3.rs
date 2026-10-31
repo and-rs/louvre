@@ -86,29 +86,4 @@ impl Storage {
             .map_err(|error| StorageError::Other(format!("{}", DisplayErrorContext(&error))))?;
         Ok(())
     }
-
-    pub async fn list(&self, prefix: &str) -> Result<Vec<String>, String> {
-        let objects = self
-            .client
-            .list_objects_v2()
-            .bucket(&self.bucket)
-            .prefix(prefix)
-            .send()
-            .await
-            .map_err(|error| format!("{}", DisplayErrorContext(&error)))?;
-        let mut files: Vec<_> = objects
-            .contents()
-            .iter()
-            .filter_map(|object| object.key())
-            .map(|key| key.strip_prefix(prefix).unwrap_or(key).to_owned())
-            .filter(|key| {
-                matches!(
-                    key.rsplit('.').next(),
-                    Some("jpg" | "jpeg" | "png" | "webp")
-                )
-            })
-            .collect();
-        files.sort_unstable();
-        Ok(files)
-    }
 }

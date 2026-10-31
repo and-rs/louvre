@@ -4,6 +4,10 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 mode="${1:-test}"
+if [[ "$mode" != "test" && "$mode" != "serve" ]]; then
+  printf 'usage: %s [test|serve]\n' "$0" >&2
+  exit 2
+fi
 
 tmp_root="${TMPDIR:-${RUNNER_TEMP:-$HOME/.cache}}"
 mkdir -p "$tmp_root"
@@ -48,7 +52,6 @@ export STUDIO_USERNAME=e2e-owner
 export STUDIO_PASSWORD_HASH='$argon2id$v=19$m=19456,t=2,p=1$cALHoRXElPrrfe9XXlOiuw$G8hjD5xiViSm5543nacL3X1nf/64VcAlytxG2P3xkqc'
 
 tailwindcss -i louvre-site/src/static/css/input.css -o louvre-site/src/static/css/site.css --silent
-./scripts/compress.sh
 cargo run -p louvre-cli -- migrate
 
 if [[ "$mode" == "serve" ]]; then
@@ -61,9 +64,6 @@ if [[ "$mode" == "serve" ]]; then
   printf 'Studio login: %s / e2e-password\n' "$STUDIO_USERNAME"
   printf 'Test database and S3 are isolated; press Ctrl-C to stop.\n'
   wait "$app_pid"
-elif [[ "$mode" == "test" ]]; then
-  npm run e2e
 else
-  printf 'usage: %s [test|serve]\n' "$0" >&2
-  exit 2
+  npm run e2e
 fi
