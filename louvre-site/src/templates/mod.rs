@@ -12,4 +12,4 @@ pub use components::{ButtonSize, ButtonVariant, LinkTarget, button_link, footer,
 pub use home::home;
 pub use layout::{PageMetadata, page};
 pub use not_found::not_found;
-pub use studio::{studio, studio_login};
+pub use studio::{studio, studio_artwork, studio_login, studio_new};

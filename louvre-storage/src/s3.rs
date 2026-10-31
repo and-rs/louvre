@@ -1,6 +1,8 @@
 use aws_sdk_s3::Client;
 use aws_sdk_s3::error::DisplayErrorContext;
+use aws_sdk_s3::primitives::ByteStream;
 
+#[derive(Debug)]
 pub enum StorageError {
     NotFound,
     Other(String),
@@ -46,6 +48,35 @@ impl Storage {
             .into_bytes()
             .to_vec();
         Ok(bytes)
+    }
+
+    pub async fn put(
+        &self,
+        key: &str,
+        bytes: Vec<u8>,
+        content_type: &str,
+    ) -> Result<(), StorageError> {
+        self.client
+            .put_object()
+            .bucket(&self.bucket)
+            .key(key)
+            .content_type(content_type)
+            .body(ByteStream::from(bytes))
+            .send()
+            .await
+            .map_err(|error| StorageError::Other(format!("{}", DisplayErrorContext(&error))))?;
+        Ok(())
+    }
+
+    pub async fn delete(&self, key: &str) -> Result<(), StorageError> {
+        self.client
+            .delete_object()
+            .bucket(&self.bucket)
+            .key(key)
+            .send()
+            .await
+            .map_err(|error| StorageError::Other(format!("{}", DisplayErrorContext(&error))))?;
+        Ok(())
     }
 
     pub async fn list(&self, prefix: &str) -> Result<Vec<String>, String> {

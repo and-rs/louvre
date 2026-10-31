@@ -1,7 +1,7 @@
 mod assets;
 mod routes;
 mod templates;
-use axum::{Router, routing::get, routing::post};
+use axum::{Router, extract::DefaultBodyLimit, routing::get, routing::post};
 use axum_login::{AuthManagerLayerBuilder, login_required};
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -61,14 +61,34 @@ async fn main() {
     let session_layer = louvre_auth::session_layer(session_store, !cfg!(feature = "dev"));
     let auth_layer = AuthManagerLayerBuilder::new(studio_backend, session_layer).build();
 
-    let app = Router::new()
+    let studio_routes = Router::new()
         .route("/studio", get(routes::studio))
-        .route_layer(login_required!(StudioBackend, login_url = "/studio/login"))
+        .route("/studio/logout", post(routes::studio_logout))
+        .route(
+            "/studio/artworks/new",
+            get(routes::studio_new).post(routes::studio_create),
+        )
+        .route(
+            "/studio/artworks/{slug}",
+            get(routes::studio_artwork).post(routes::studio_update),
+        )
+        .route(
+            "/studio/artworks/{slug}/images",
+            post(routes::studio_upload_image)
+                .layer(DefaultBodyLimit::max(routes::UPLOAD_BODY_LIMIT)),
+        )
+        .route(
+            "/studio/artworks/{slug}/publish",
+            post(routes::studio_publish),
+        )
+        .route_layer(login_required!(StudioBackend, login_url = "/studio/login"));
+
+    let app = Router::new()
+        .merge(studio_routes)
         .route(
             "/studio/login",
             get(routes::studio_login).post(routes::studio_login_submit),
         )
-        .route("/studio/logout", post(routes::studio_logout))
         .route("/", get(routes::home))
         .route("/artwork/{id}", get(routes::artwork))
         .route("/artwork/{id}/image/{file}", get(routes::artwork_image))
