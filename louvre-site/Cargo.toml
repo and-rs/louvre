@@ -14,6 +14,7 @@ dev = ["dep:tower-livereload"]
 [dependencies]
 axum.workspace = true
 axum-login.workspace = true
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
 louvre-auth = { path = "../louvre-auth" }
 louvre-storage = { path = "../louvre-storage" }
 louvre-tw-merge = { path = "../louvre-tw-merge" }

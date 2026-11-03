@@ -50,6 +50,7 @@
 }
 
 @source "../../templates/**/*.rs";
+@source "../js/site.js";
 
 @theme inline {
   --font-sans: "Archivo", sans-serif;

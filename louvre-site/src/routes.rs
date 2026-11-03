@@ -11,10 +11,12 @@ use axum::{
 use axum_login::AuthSession;
 use louvre_auth::{Credentials, StudioBackend};
 use louvre_storage::{
-    Artwork, PgPool, Storage, StorageError, add_artwork_image, create_draft, get_artwork,
-    list_artworks, list_published_artworks, publish_artwork, update_draft,
+    Artwork, ArtworkDetails, ArtworkImageInput, PgPool, Storage, StorageError, add_artwork_image,
+    create_draft, get_artwork, list_artworks, list_published_artworks, move_artwork_image,
+    publish_artwork, remove_artwork_image, update_artwork_image_alt_text, update_draft,
 };
 use serde::Deserialize;
+use std::io::Cursor;
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -30,6 +32,8 @@ struct UploadedImage {
     bytes: Vec<u8>,
     extension: &'static str,
     content_type: &'static str,
+    width: u32,
+    height: u32,
 }
 
 #[derive(Default)]
@@ -37,6 +41,10 @@ struct ArtworkMultipart {
     title: Option<String>,
     slug: Option<String>,
     description: Option<String>,
+    collection: Option<String>,
+    medium: Option<String>,
+    collection_number: Option<String>,
+    upload_id: Option<String>,
     image: Option<UploadedImage>,
     image_seen: bool,
     alt_text: Option<String>,
@@ -51,6 +59,7 @@ struct ArtworkMultipartError {
 struct ArtworkImageUpload {
     image: UploadedImage,
     alt_text: String,
+    upload_id: Uuid,
 }
 
 enum ImageStoreError {
@@ -62,7 +71,21 @@ enum ImageStoreError {
 #[derive(Deserialize)]
 pub struct UpdateArtworkForm {
     title: String,
+    slug: String,
     description: String,
+    collection: String,
+    medium: String,
+    collection_number: String,
+}
+
+#[derive(Deserialize)]
+pub struct ImageMoveForm {
+    direction: String,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateImageAltTextForm {
+    alt_text: String,
 }
 
 pub async fn studio_login(auth_session: AuthSession<StudioBackend>) -> Response {
@@ -143,7 +166,19 @@ pub async fn studio_logout(mut auth_session: AuthSession<StudioBackend>) -> Resp
 }
 
 pub async fn studio_new() -> Response {
-    render_studio_new(None, "", "", "", "", StatusCode::OK)
+    render_studio_new(
+        None,
+        templates::StudioNewFields {
+            title: "",
+            slug: "",
+            description: "",
+            collection: "",
+            medium: "",
+            collection_number: "",
+            alt_text: "",
+        },
+        StatusCode::OK,
+    )
 }
 
 pub async fn studio_create(State(state): State<Arc<AppState>>, multipart: Multipart) -> Response {
@@ -151,61 +186,83 @@ pub async fn studio_create(State(state): State<Arc<AppState>>, multipart: Multip
         Ok(form) => form,
         Err(error) => return error.render_new(),
     };
-    let title = form.title.as_deref().unwrap_or_default().trim();
-    let slug = form.slug.as_deref().unwrap_or_default().trim();
-    let description = form.description.as_deref().unwrap_or_default().trim();
-    let alt_text = form.alt_text.as_deref().unwrap_or_default().trim();
-    if title.is_empty() || title.len() > 200 || !valid_slug(slug) || description.len() > 5000 {
+    let fields = templates::StudioNewFields {
+        title: form.title.as_deref().unwrap_or_default().trim(),
+        slug: form.slug.as_deref().unwrap_or_default().trim(),
+        description: form.description.as_deref().unwrap_or_default().trim(),
+        collection: form.collection.as_deref().unwrap_or_default().trim(),
+        medium: form.medium.as_deref().unwrap_or_default().trim(),
+        collection_number: form.collection_number.as_deref().unwrap_or_default().trim(),
+        alt_text: form.alt_text.as_deref().unwrap_or_default().trim(),
+    };
+    let upload_id = match parse_upload_id(form.upload_id.as_deref()) {
+        Ok(upload_id) => upload_id,
+        Err(()) => {
+            return render_studio_new(
+                Some("The image upload identifier is invalid. Please try again."),
+                fields,
+                StatusCode::BAD_REQUEST,
+            );
+        }
+    };
+    let collection_number = match parse_collection_number(fields.collection_number) {
+        Some(value) => value,
+        None => {
+            return render_studio_new(
+                Some("Collection number must be a positive whole number."),
+                fields,
+                StatusCode::BAD_REQUEST,
+            );
+        }
+    };
+    if fields.title.is_empty()
+        || fields.title.len() > 200
+        || !valid_slug(fields.slug)
+        || fields.description.len() > 5000
+        || fields.collection.len() > 200
+        || fields.medium.len() > 200
+    {
         return render_studio_new(
-            Some(
-                "Enter a title (up to 200 characters), a valid lowercase slug, and a description under 5,000 characters.",
-            ),
-            title,
-            slug,
-            description,
-            alt_text,
+            Some("Check the title, URL slug, description, collection, and medium lengths."),
+            fields,
             StatusCode::BAD_REQUEST,
         );
     }
 
-    let image_upload = match (form.image, alt_text.is_empty()) {
+    let image_upload = match (form.image, fields.alt_text.is_empty()) {
         (None, true) => None,
         (None, false) => {
             return render_studio_new(
                 Some(
                     "Choose an image to use with its alternative text, or leave both fields blank.",
                 ),
-                title,
-                slug,
-                description,
-                alt_text,
+                fields,
                 StatusCode::BAD_REQUEST,
             );
         }
         (Some(_), true) => {
             return render_studio_new(
                 Some("Enter alternative text for the image."),
-                title,
-                slug,
-                description,
-                alt_text,
+                fields,
                 StatusCode::BAD_REQUEST,
             );
         }
         (Some(image), false) => Some(ArtworkImageUpload {
             image,
-            alt_text: alt_text.to_owned(),
+            alt_text: fields.alt_text.to_owned(),
+            upload_id,
         }),
     };
 
-    match create_draft(
-        &state.database,
-        title,
-        slug,
-        (!description.is_empty()).then_some(description),
-    )
-    .await
-    {
+    let details = ArtworkDetails {
+        title: fields.title.to_owned(),
+        slug: fields.slug.to_owned(),
+        description: (!fields.description.is_empty()).then(|| fields.description.to_owned()),
+        collection: (!fields.collection.is_empty()).then(|| fields.collection.to_owned()),
+        medium: (!fields.medium.is_empty()).then(|| fields.medium.to_owned()),
+        collection_number,
+    };
+    match create_draft(&state.database, &details).await {
         Ok(artwork) => {
             if let Some(image_upload) = image_upload {
                 match store_artwork_image(&state, &artwork, image_upload).await {
@@ -225,10 +282,7 @@ pub async fn studio_create(State(state): State<Arc<AppState>>, multipart: Multip
         }
         Err(error) if is_unique_violation(&error) => render_studio_new(
             Some("That URL slug is already in use. Select the image again if needed."),
-            title,
-            slug,
-            description,
-            alt_text,
+            fields,
             StatusCode::CONFLICT,
         ),
         Err(error) => {
@@ -256,17 +310,28 @@ pub async fn studio_thumbnail(
     State(state): State<Arc<AppState>>,
     Path(slug): Path<String>,
 ) -> Response {
-    let artwork = match get_artwork(&state.database, &slug).await {
+    studio_thumbnail_at(&state, &slug, 0).await
+}
+
+pub async fn studio_image_thumbnail(
+    State(state): State<Arc<AppState>>,
+    Path((slug, position)): Path<(String, usize)>,
+) -> Response {
+    studio_thumbnail_at(&state, &slug, position).await
+}
+
+async fn studio_thumbnail_at(state: &AppState, slug: &str, position: usize) -> Response {
+    let artwork = match get_artwork(&state.database, slug).await {
         Ok(Some(artwork)) => artwork,
         Ok(None) => return StatusCode::NOT_FOUND.into_response(),
         Err(error) => {
-            tracing::error!(%error, artwork_slug = %slug, "failed to load Studio artwork thumbnail");
+            tracing::error!(%error, artwork_slug = %slug, "failed to load Studio artwork image");
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     };
     let Some(version) = artwork
         .images
-        .first()
+        .get(position)
         .and_then(|image| image.web_versions.first())
     else {
         return StatusCode::NOT_FOUND.into_response();
@@ -285,7 +350,7 @@ pub async fn studio_thumbnail(
         ),
         Err(StorageError::NotFound) => StatusCode::NOT_FOUND.into_response(),
         Err(StorageError::Other(error)) => {
-            tracing::error!(%error, artwork_slug = %slug, "failed to fetch Studio artwork thumbnail");
+            tracing::error!(%error, artwork_slug = %slug, position, "failed to fetch Studio artwork image");
             StatusCode::BAD_GATEWAY.into_response()
         }
     }
@@ -297,7 +362,11 @@ pub async fn studio_update(
     Form(form): Form<UpdateArtworkForm>,
 ) -> Response {
     let title = form.title.trim();
+    let new_slug = form.slug.trim();
     let description = form.description.trim();
+    let collection = form.collection.trim();
+    let medium = form.medium.trim();
+    let collection_number = parse_collection_number(form.collection_number.trim());
     let current = match get_artwork(&state.database, &slug).await {
         Ok(Some(artwork)) => artwork,
         Ok(None) => return not_found().await,
@@ -306,25 +375,46 @@ pub async fn studio_update(
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     };
-    if title.is_empty() || title.len() > 200 || description.len() > 5000 {
-        let mut displayed = current;
-        displayed.title = form.title;
-        displayed.description = (!form.description.trim().is_empty()).then_some(form.description);
-        return render_studio_artwork(
-            &displayed,
-            Some("Enter a title under 200 characters and a description under 5,000 characters."),
+    let render_error = |message, status| {
+        let mut displayed = current.clone();
+        displayed.title = form.title.clone();
+        displayed.slug = form.slug.clone();
+        displayed.description = (!description.is_empty()).then_some(form.description.clone());
+        displayed.collection = (!collection.is_empty()).then_some(collection.to_owned());
+        displayed.medium = (!medium.is_empty()).then_some(medium.to_owned());
+        if let Some(collection_number) = collection_number {
+            displayed.collection_number = collection_number;
+        }
+        render_studio_artwork_at(&displayed, Some(message), status, &slug)
+    };
+    let Some(collection_number) = collection_number else {
+        return render_error(
+            "Collection number must be a positive whole number.",
+            StatusCode::BAD_REQUEST,
+        );
+    };
+    if title.is_empty()
+        || title.len() > 200
+        || !valid_slug(new_slug)
+        || description.len() > 5000
+        || collection.len() > 200
+        || medium.len() > 200
+    {
+        return render_error(
+            "Check the title, URL slug, description, collection, and medium lengths.",
             StatusCode::BAD_REQUEST,
         );
     }
 
-    match update_draft(
-        &state.database,
-        &slug,
-        title,
-        (!description.is_empty()).then_some(description),
-    )
-    .await
-    {
+    let details = ArtworkDetails {
+        title: title.to_owned(),
+        slug: new_slug.to_owned(),
+        description: (!description.is_empty()).then(|| description.to_owned()),
+        collection: (!collection.is_empty()).then(|| collection.to_owned()),
+        medium: (!medium.is_empty()).then(|| medium.to_owned()),
+        collection_number,
+    };
+    match update_draft(&state.database, &slug, &details).await {
         Ok(Some(artwork)) => {
             no_store(Redirect::to(&format!("/studio/artworks/{}", artwork.slug)).into_response())
         }
@@ -333,6 +423,9 @@ pub async fn studio_update(
             Some("Only drafts can be edited."),
             StatusCode::CONFLICT,
         ),
+        Err(error) if is_unique_violation(&error) => {
+            render_error("That URL slug is already in use.", StatusCode::CONFLICT)
+        }
         Err(error) => {
             tracing::error!(%error, artwork_slug = %slug, "failed to update artwork draft");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
@@ -359,7 +452,13 @@ pub async fn studio_upload_image(
         Ok(form) => form,
         Err(error) => return render_studio_artwork(&artwork, Some(error.message), error.status),
     };
-    if form.title.is_some() || form.slug.is_some() || form.description.is_some() {
+    if form.title.is_some()
+        || form.slug.is_some()
+        || form.description.is_some()
+        || form.collection.is_some()
+        || form.medium.is_some()
+        || form.collection_number.is_some()
+    {
         return render_studio_artwork(
             &artwork,
             Some("The upload form contains unexpected fields."),
@@ -380,6 +479,24 @@ pub async fn studio_upload_image(
             StatusCode::BAD_REQUEST,
         );
     };
+    let upload_id = match parse_upload_id(form.upload_id.as_deref()) {
+        Ok(upload_id) => upload_id,
+        Err(()) => {
+            return render_studio_artwork(
+                &artwork,
+                Some("The upload identifier is invalid. Please try again."),
+                StatusCode::BAD_REQUEST,
+            );
+        }
+    };
+    let upload_id_text = upload_id.to_string();
+    if artwork
+        .images
+        .iter()
+        .any(|image| image.upload_id.as_deref() == Some(upload_id_text.as_str()))
+    {
+        return studio_artwork_redirect(&slug);
+    }
 
     match store_artwork_image(
         &state,
@@ -387,6 +504,7 @@ pub async fn studio_upload_image(
         ArtworkImageUpload {
             image,
             alt_text: alt_text.trim().to_owned(),
+            upload_id,
         },
     )
     .await
@@ -395,6 +513,81 @@ pub async fn studio_upload_image(
         Err(error) => {
             let (status, message) = image_store_error(&error, false);
             render_studio_artwork(&artwork, Some(message), status)
+        }
+    }
+}
+
+pub async fn studio_update_image_alt_text(
+    State(state): State<Arc<AppState>>,
+    Path((slug, position)): Path<(String, usize)>,
+    Form(form): Form<UpdateImageAltTextForm>,
+) -> Response {
+    let alt_text = form.alt_text.trim();
+    if alt_text.is_empty() || alt_text.len() > 500 {
+        return (
+            StatusCode::BAD_REQUEST,
+            "Alternative text must be 1–500 characters.",
+        )
+            .into_response();
+    }
+    match update_artwork_image_alt_text(&state.database, &slug, position, alt_text).await {
+        Ok(Some(_)) => studio_artwork_redirect(&slug),
+        Ok(None) => StatusCode::NOT_FOUND.into_response(),
+        Err(error) => {
+            tracing::error!(%error, artwork_slug = %slug, position, "failed to update image alternative text");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+pub async fn studio_move_image(
+    State(state): State<Arc<AppState>>,
+    Path((slug, position)): Path<(String, usize)>,
+    Form(form): Form<ImageMoveForm>,
+) -> Response {
+    let target = match form.direction.as_str() {
+        "up" => position.checked_sub(1),
+        "down" => position.checked_add(1),
+        _ => return StatusCode::BAD_REQUEST.into_response(),
+    };
+    let Some(target) = target else {
+        return StatusCode::BAD_REQUEST.into_response();
+    };
+    match move_artwork_image(&state.database, &slug, position, target).await {
+        Ok(Some(_)) => studio_artwork_redirect(&slug),
+        Ok(None) => StatusCode::NOT_FOUND.into_response(),
+        Err(error) => {
+            tracing::error!(%error, artwork_slug = %slug, position, "failed to reorder artwork images");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+pub async fn studio_delete_image(
+    State(state): State<Arc<AppState>>,
+    Path((slug, position)): Path<(String, usize)>,
+) -> Response {
+    match remove_artwork_image(&state.database, &slug, position).await {
+        Ok(Some(image)) => {
+            let mut keys = image
+                .web_versions
+                .into_iter()
+                .map(|version| version.s3_key)
+                .collect::<Vec<_>>();
+            keys.push(image.source.s3_key);
+            keys.sort_unstable();
+            keys.dedup();
+            for key in keys {
+                if let Err(error) = state.storage.delete(&key).await {
+                    tracing::error!(?error, %key, artwork_slug = %slug, "failed to delete removed artwork image from storage");
+                }
+            }
+            studio_artwork_redirect(&slug)
+        }
+        Ok(None) => StatusCode::NOT_FOUND.into_response(),
+        Err(error) => {
+            tracing::error!(%error, artwork_slug = %slug, position, "failed to remove artwork image");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
 }
@@ -446,10 +639,7 @@ fn render_studio_login(error: Option<&str>) -> Response {
 
 fn render_studio_new(
     error: Option<&str>,
-    title: &str,
-    slug: &str,
-    description: &str,
-    alt_text: &str,
+    fields: templates::StudioNewFields<'_>,
     status: StatusCode,
 ) -> Response {
     no_store(
@@ -460,7 +650,7 @@ fn render_studio_new(
                     page_title: Some("New artwork"),
                     description: "Create an artwork draft in Studio.",
                 },
-                templates::studio_new(error, title, slug, description, alt_text),
+                templates::studio_new(error, fields),
             ),
         )
             .into_response(),
@@ -471,10 +661,15 @@ impl ArtworkMultipartError {
     fn render_new(self) -> Response {
         render_studio_new(
             Some(self.message),
-            self.form.title.as_deref().unwrap_or_default(),
-            self.form.slug.as_deref().unwrap_or_default(),
-            self.form.description.as_deref().unwrap_or_default(),
-            self.form.alt_text.as_deref().unwrap_or_default(),
+            templates::StudioNewFields {
+                title: self.form.title.as_deref().unwrap_or_default(),
+                slug: self.form.slug.as_deref().unwrap_or_default(),
+                description: self.form.description.as_deref().unwrap_or_default(),
+                collection: self.form.collection.as_deref().unwrap_or_default(),
+                medium: self.form.medium.as_deref().unwrap_or_default(),
+                collection_number: self.form.collection_number.as_deref().unwrap_or_default(),
+                alt_text: self.form.alt_text.as_deref().unwrap_or_default(),
+            },
             self.status,
         )
     }
@@ -532,6 +727,54 @@ async fn parse_artwork_multipart(
             }
             "description" if form.description.is_none() => {
                 form.description = match read_text_field(field).await {
+                    Ok(value) => Some(value),
+                    Err((status, message)) => {
+                        return Err(ArtworkMultipartError {
+                            form,
+                            status,
+                            message,
+                        });
+                    }
+                };
+            }
+            "collection" if form.collection.is_none() => {
+                form.collection = match read_text_field(field).await {
+                    Ok(value) => Some(value),
+                    Err((status, message)) => {
+                        return Err(ArtworkMultipartError {
+                            form,
+                            status,
+                            message,
+                        });
+                    }
+                };
+            }
+            "medium" if form.medium.is_none() => {
+                form.medium = match read_text_field(field).await {
+                    Ok(value) => Some(value),
+                    Err((status, message)) => {
+                        return Err(ArtworkMultipartError {
+                            form,
+                            status,
+                            message,
+                        });
+                    }
+                };
+            }
+            "collection_number" if form.collection_number.is_none() => {
+                form.collection_number = match read_text_field(field).await {
+                    Ok(value) => Some(value),
+                    Err((status, message)) => {
+                        return Err(ArtworkMultipartError {
+                            form,
+                            status,
+                            message,
+                        });
+                    }
+                };
+            }
+            "upload_id" if form.upload_id.is_none() => {
+                form.upload_id = match read_text_field(field).await {
                     Ok(value) => Some(value),
                     Err((status, message)) => {
                         return Err(ArtworkMultipartError {
@@ -614,10 +857,28 @@ async fn parse_image_field(
             "Upload a valid JPEG, PNG, or WebP image.",
         ));
     };
+    let reader = image::ImageReader::new(Cursor::new(&bytes))
+        .with_guessed_format()
+        .map_err(|error| {
+            tracing::warn!(%error, "failed to read uploaded image dimensions");
+            (
+                StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                "Upload a valid JPEG, PNG, or WebP image.",
+            )
+        })?;
+    let dimensions = reader.into_dimensions().map_err(|error| {
+        tracing::warn!(%error, "failed to read uploaded image dimensions");
+        (
+            StatusCode::UNSUPPORTED_MEDIA_TYPE,
+            "Upload a valid JPEG, PNG, or WebP image.",
+        )
+    })?;
     Ok(Some(UploadedImage {
         bytes: bytes.to_vec(),
         extension,
         content_type,
+        width: dimensions.0,
+        height: dimensions.1,
     }))
 }
 
@@ -640,6 +901,9 @@ async fn store_artwork_image(
 ) -> Result<Artwork, ImageStoreError> {
     let file = format!("{}.{}", Uuid::new_v4().simple(), upload.image.extension);
     let key = format!("artworks/{}/{file}", artwork.slug);
+    let upload_id = upload.upload_id.to_string();
+    let width = upload.image.width;
+    let height = upload.image.height;
     if let Err(error) = state
         .storage
         .put(&key, upload.image.bytes, upload.image.content_type)
@@ -652,16 +916,35 @@ async fn store_artwork_image(
     match add_artwork_image(
         &state.database,
         &artwork.slug,
-        &upload.alt_text,
-        &key,
-        upload.image.content_type,
+        ArtworkImageInput {
+            alt_text: &upload.alt_text,
+            s3_key: &key,
+            content_type: upload.image.content_type,
+            upload_id: &upload_id,
+            width,
+            height,
+        },
     )
     .await
     {
         Ok(Some(artwork)) => Ok(artwork),
         Ok(None) => {
             delete_orphaned_upload(&state.storage, &key).await;
-            Err(ImageStoreError::NotDraft)
+            match get_artwork(&state.database, &artwork.slug).await {
+                Ok(Some(current))
+                    if current
+                        .images
+                        .iter()
+                        .any(|image| image.upload_id.as_deref() == Some(upload_id.as_str())) =>
+                {
+                    Ok(current)
+                }
+                Ok(_) => Err(ImageStoreError::NotDraft),
+                Err(error) => {
+                    tracing::error!(%error, artwork_slug = %artwork.slug, "failed to verify a retried image upload");
+                    Err(ImageStoreError::Database)
+                }
+            }
         }
         Err(error) => {
             tracing::error!(%error, artwork_slug = %artwork.slug, "failed to save uploaded image metadata");
@@ -697,6 +980,15 @@ fn image_store_error(error: &ImageStoreError, creating: bool) -> (StatusCode, &'
 }
 
 fn render_studio_artwork(artwork: &Artwork, error: Option<&str>, status: StatusCode) -> Response {
+    render_studio_artwork_at(artwork, error, status, &artwork.slug)
+}
+
+fn render_studio_artwork_at(
+    artwork: &Artwork,
+    error: Option<&str>,
+    status: StatusCode,
+    route_slug: &str,
+) -> Response {
     no_store(
         (
             status,
@@ -705,7 +997,7 @@ fn render_studio_artwork(artwork: &Artwork, error: Option<&str>, status: StatusC
                     page_title: Some(&artwork.title),
                     description: "Manage an artwork in Studio.",
                 },
-                templates::studio_artwork(artwork, error),
+                templates::studio_artwork_at(artwork, error, route_slug),
             ),
         )
             .into_response(),
@@ -788,21 +1080,20 @@ pub async fn artwork_image(
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     };
-    let key = format!("artworks/{slug}/{file}");
-    let content_type = artwork
+    let Some(version) = artwork
         .images
         .iter()
         .flat_map(|image| image.web_versions.iter())
-        .find(|version| version.s3_key == key)
-        .map(|version| version.content_type.as_str());
-    let Some(content_type) = content_type else {
+        .find(|version| version.s3_key.rsplit('/').next() == Some(file.as_str()))
+    else {
         return StatusCode::NOT_FOUND.into_response();
     };
+    let key = &version.s3_key;
 
-    match state.storage.get(&key).await {
+    match state.storage.get(key).await {
         Ok(bytes) => (
             [
-                (CONTENT_TYPE, content_type),
+                (CONTENT_TYPE, version.content_type.as_str()),
                 (CACHE_CONTROL, "public, max-age=31536000, immutable"),
                 (X_CONTENT_TYPE_OPTIONS, "nosniff"),
             ],
@@ -831,6 +1122,10 @@ pub async fn not_found() -> Response {
         .into_response()
 }
 
+fn studio_artwork_redirect(slug: &str) -> Response {
+    no_store(Redirect::to(&format!("/studio/artworks/{slug}")).into_response())
+}
+
 fn valid_slug(slug: &str) -> bool {
     !slug.is_empty()
         && slug.len() <= 100
@@ -840,6 +1135,25 @@ fn valid_slug(slug: &str) -> bool {
         && slug
             .bytes()
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+}
+
+fn parse_collection_number(value: &str) -> Option<Option<i32>> {
+    if value.is_empty() {
+        Some(None)
+    } else {
+        value
+            .parse::<i32>()
+            .ok()
+            .filter(|number| *number > 0)
+            .map(Some)
+    }
+}
+
+fn parse_upload_id(value: Option<&str>) -> Result<Uuid, ()> {
+    match value.filter(|value| !value.is_empty()) {
+        Some(value) => Uuid::parse_str(value).map_err(|_| ()),
+        None => Ok(Uuid::new_v4()),
+    }
 }
 
 fn image_type(bytes: &[u8]) -> Option<(&'static str, &'static str)> {
@@ -889,5 +1203,23 @@ mod tests {
             Some(("webp", "image/webp"))
         );
         assert_eq!(image_type(b"not an image"), None);
+    }
+
+    #[test]
+    fn accepts_empty_or_valid_collection_numbers_only() {
+        assert_eq!(parse_collection_number(""), Some(None));
+        assert_eq!(parse_collection_number("42"), Some(Some(42)));
+        assert_eq!(parse_collection_number("0"), None);
+        assert_eq!(parse_collection_number("-2"), None);
+        assert_eq!(parse_collection_number("42.5"), None);
+        assert_eq!(parse_collection_number("2147483648"), None);
+    }
+
+    #[test]
+    fn parses_client_upload_ids_and_generates_missing_ids() {
+        let id = Uuid::new_v4();
+        assert_eq!(parse_upload_id(Some(&id.to_string())), Ok(id));
+        assert!(parse_upload_id(Some("invalid")).is_err());
+        assert!(parse_upload_id(None).is_ok());
     }
 }

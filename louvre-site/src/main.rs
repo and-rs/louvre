@@ -83,9 +83,25 @@ async fn main() {
             get(routes::studio_thumbnail),
         )
         .route(
+            "/studio/artworks/{slug}/images/{position}/thumbnail",
+            get(routes::studio_image_thumbnail),
+        )
+        .route(
             "/studio/artworks/{slug}/images",
             post(routes::studio_upload_image)
                 .layer(DefaultBodyLimit::max(routes::UPLOAD_BODY_LIMIT)),
+        )
+        .route(
+            "/studio/artworks/{slug}/images/{position}/alt-text",
+            post(routes::studio_update_image_alt_text),
+        )
+        .route(
+            "/studio/artworks/{slug}/images/{position}/move",
+            post(routes::studio_move_image),
+        )
+        .route(
+            "/studio/artworks/{slug}/images/{position}/delete",
+            post(routes::studio_delete_image),
         )
         .route(
             "/studio/artworks/{slug}/publish",
