@@ -44,7 +44,13 @@ pub fn studio(username: &str, artworks: &[Artwork]) -> Markup {
     }
 }
 
-pub fn studio_new(error: Option<&str>, title: &str, slug: &str, description: &str) -> Markup {
+pub fn studio_new(
+    error: Option<&str>,
+    title: &str,
+    slug: &str,
+    description: &str,
+    alt_text: &str,
+) -> Markup {
     html! {
         section class="max-w-2xl" {
             p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase" { "LOUVRE / STUDIO" }
@@ -52,7 +58,8 @@ pub fn studio_new(error: Option<&str>, title: &str, slug: &str, description: &st
             @if let Some(error) = error {
                 p role="alert" class="mt-6 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" { (error) }
             }
-            form method="post" action="/studio/artworks" class="mt-8 border-t border-border pt-6 space-y-6" {
+            p class="mt-4 text-sm text-muted-foreground" { "Add the first image now or create the draft and upload one later. At least one image is required to publish." }
+            form method="post" enctype="multipart/form-data" action="/studio/artworks" class="mt-8 border-t border-border pt-6 space-y-6" {
                 div class="space-y-2" {
                     label for="title" class="text-sm font-medium" { "Title" }
                     input id="title" name="title" type="text" value=(title) required maxlength="200" class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
@@ -65,6 +72,15 @@ pub fn studio_new(error: Option<&str>, title: &str, slug: &str, description: &st
                 div class="space-y-2" {
                     label for="description" class="text-sm font-medium" { "Description (optional)" }
                     textarea id="description" name="description" rows="5" maxlength="5000" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" { (description) }
+                }
+                div class="space-y-2" {
+                    label for="image" class="text-sm font-medium" { "First image (optional)" }
+                    input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp" class="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-md file:border file:border-border file:bg-background file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground";
+                    p class="text-xs text-muted-foreground" { "JPEG, PNG, or WebP, up to 10 MB." }
+                }
+                div class="space-y-2" {
+                    label for="alt_text" class="text-sm font-medium" { "Alternative text (required with an image)" }
+                    input id="alt_text" name="alt_text" type="text" value=(alt_text) maxlength="500" class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
                 }
                 div class="flex gap-3" {
                     button type="submit" class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/90" { "Create draft" }

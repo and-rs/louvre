@@ -64,9 +64,10 @@ async fn main() {
     let studio_routes = Router::new()
         .route("/studio", get(routes::studio))
         .route("/studio/logout", post(routes::studio_logout))
+        .route("/studio/artworks/new", get(routes::studio_new))
         .route(
-            "/studio/artworks/new",
-            get(routes::studio_new).post(routes::studio_create),
+            "/studio/artworks",
+            post(routes::studio_create).layer(DefaultBodyLimit::max(routes::UPLOAD_BODY_LIMIT)),
         )
         .route(
             "/studio/artworks/{slug}",

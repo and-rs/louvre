@@ -9,7 +9,7 @@ rust-version = "1.94"
 version = "0.1.0"
 
 [workspace.dependencies]
-aws-config = { version = "1", features = ["behavior-version-latest"] }
+aws-config = { version = "1", features = ["behavior-version-latest", "credentials-login"] }
 aws-sdk-s3 = "1"
 axum = { version = "0.8", features = ["multipart"] }
 axum-login = "0.18"
