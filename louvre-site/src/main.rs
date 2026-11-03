@@ -1,4 +1,5 @@
 mod assets;
+mod branding;
 mod routes;
 mod templates;
 use axum::{Router, extract::DefaultBodyLimit, routing::get, routing::post};

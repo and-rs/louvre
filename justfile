@@ -61,7 +61,7 @@ check-auth:
 railway-s3:
   ./scripts/configure-railway-s3.sh
 
-# Ensure Railway has PostgreSQL and the app references its DATABASE_URL.
+# Configure Railway PostgreSQL, DATABASE_URL, and the public site name.
 railway-setup:
   ./scripts/setup-railway.sh
 

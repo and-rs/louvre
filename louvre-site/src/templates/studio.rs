@@ -1,12 +1,14 @@
 use louvre_storage::Artwork;
 use maud::{Markup, html};
 
+use crate::branding::site_name;
+
 pub fn studio(username: &str, artworks: &[Artwork]) -> Markup {
     html! {
         section {
             header class="flex flex-col gap-4 border-b border-border pb-8 sm:flex-row sm:items-end sm:justify-between" {
                 div {
-                    p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase" { "LOUVRE / PRIVATE WORKSPACE" }
+                    p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase" { (site_name()) " / PRIVATE WORKSPACE" }
                     h1 class="mt-2 page-title" { "Studio" }
                     p class="mt-3 max-w-xl text-muted-foreground" { "Welcome, " (username) ". Manage your artwork drafts and published collection." }
                 }
@@ -58,7 +60,7 @@ pub fn studio_new(
 ) -> Markup {
     html! {
         section class="max-w-2xl" {
-            p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase" { "LOUVRE / STUDIO" }
+            p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase" { (site_name()) " / STUDIO" }
             h1 class="mt-2 page-title" { "New artwork" }
             @if let Some(error) = error {
                 p role="alert" class="mt-6 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" { (error) }
@@ -99,7 +101,7 @@ pub fn studio_new(
 pub fn studio_artwork(artwork: &Artwork, error: Option<&str>) -> Markup {
     html! {
         section class="max-w-3xl" {
-            p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase" { "LOUVRE / STUDIO" }
+            p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase" { (site_name()) " / STUDIO" }
             div class="mt-2 flex flex-wrap items-baseline justify-between gap-3" {
                 h1 class="page-title" { (artwork.title) }
                 p class="text-sm text-muted-foreground capitalize" { (artwork.status) }
@@ -170,7 +172,7 @@ pub fn studio_login(error: Option<&str>) -> Markup {
     html! {
         section class="max-w-2xl" {
             header {
-                p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase" { "LOUVRE / PRIVATE WORKSPACE" }
+                p class="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase" { (site_name()) " / PRIVATE WORKSPACE" }
                 h1 class="mt-2 page-title" { "Studio sign in" }
                 p class="mt-4 max-w-xl text-base leading-7 text-muted-foreground" {
                     "Sign in to manage the artwork collection."

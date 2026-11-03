@@ -752,10 +752,10 @@ pub async fn artwork(State(state): State<Arc<AppState>>, Path(slug): Path<String
         Ok(Some(artwork)) if artwork.status == "published" => templates::page(
             PageMetadata {
                 page_title: Some(&artwork.title),
-                description: artwork
-                    .description
-                    .as_deref()
-                    .unwrap_or("Artwork from the Louvre collection."),
+                description: artwork.description.as_deref().unwrap_or(&format!(
+                    "Artwork from the {} collection.",
+                    crate::branding::site_name()
+                )),
             },
             templates::artwork(&artwork),
         )

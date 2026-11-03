@@ -1,11 +1,13 @@
 use louvre_storage::Artwork;
 use maud::{Markup, html};
 
+use crate::branding::site_name;
+
 pub fn home(artworks: &[Artwork]) -> Markup {
     html! {
         div class="flex flex-col gap-12" {
             header class="max-w-2xl" {
-                h1 class="page-title" { "Louvre" }
+                h1 class="page-title" { (site_name()) }
                 p class="mt-4 text-lg leading-8 text-muted-foreground" { "An artwork publishing platform." }
             }
 

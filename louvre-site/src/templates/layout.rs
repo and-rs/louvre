@@ -1,7 +1,7 @@
 use axum::response::Html;
 use maud::{DOCTYPE, Markup, PreEscaped, html};
 
-use crate::assets;
+use crate::{assets, branding::site_name};
 
 use super::{ButtonSize, ButtonVariant, LinkTarget, button_link, footer, theme_toggle};
 
@@ -23,7 +23,7 @@ pub fn page(metadata: PageMetadata<'_>, content: Markup) -> Html<String> {
                     @if let Some(page_title) = metadata.page_title {
                         (page_title) " | "
                     }
-                    "Louvre"
+                    (site_name())
                 }
                 link rel="apple-touch-icon" sizes="180x180" href=(assets::APPLE_TOUCH_ICON);
                 link rel="icon" type="image/png" sizes="32x32" href=(assets::FAVICON_32);
@@ -36,7 +36,7 @@ pub fn page(metadata: PageMetadata<'_>, content: Markup) -> Html<String> {
                 header class="fixed inset-x-0 top-0 z-50" {
                     div class="pt-3 sm:pt-4 page-shell" {
                         nav class="flex items-center gap-1 rounded-lg border bg-background/90 p-1 shadow-sm backdrop-blur" aria-label="Main navigation" {
-                            (button_link("Louvre", "/", LinkTarget::CurrentTab, ButtonVariant::Ghost, ButtonSize::Default, None))
+                            (button_link(site_name(), "/", LinkTarget::CurrentTab, ButtonVariant::Ghost, ButtonSize::Default, None))
                             (theme_toggle())
                         }
                     }
@@ -69,7 +69,7 @@ mod tests {
         )
         .0;
 
-        assert!(document.contains("<title>Louvre</title>"));
+        assert!(document.contains(&html! { title { (site_name()) } }.into_string()));
         assert!(document.contains("<meta name=\"description\" content=\"Home page\">"));
     }
 
@@ -84,6 +84,6 @@ mod tests {
         )
         .0;
 
-        assert!(document.contains("<title>Artwork | Louvre</title>"));
+        assert!(document.contains(&html! { title { "Artwork | " (site_name()) } }.into_string()));
     }
 }

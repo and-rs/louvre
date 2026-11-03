@@ -1,5 +1,7 @@
 use maud::{Markup, html};
 
+use crate::branding::site_name;
+
 use super::{ButtonSize, ButtonVariant, LinkTarget, arrow_up_right, button_link, github_logo};
 
 const LOUVRE_GITHUB_URL: &str = "https://github.com/and-rs/louvre";
@@ -10,13 +12,13 @@ pub fn footer() -> Markup {
         div class="rounded-lg border p-2 shadow-sm backdrop-blur" {
             div class="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between" {
                 div class="max-w-sm px-2" {
-                    a class="text-base font-semibold tracking-tight" href="/" { "Louvre" }
+                    a class="text-base font-semibold tracking-tight" href="/" { (site_name()) }
                     span class="text-sm leading-6 text-muted-foreground" {
                         p {
                             "A server-rendered site baseline."
                         }
                         p {
-                            "Copyright (c) 2026 Louvre. All Rights Reserved."
+                            "Copyright (c) 2026 " (site_name()) ". All Rights Reserved."
                         }
                     }
                 }
@@ -42,7 +44,7 @@ pub fn footer() -> Markup {
                     (button_link(
                         html! {
                             (github_logo("size-5"))
-                            span { "Louvre on GitHub" }
+                            span { "Source on GitHub" }
                             (arrow_up_right("size-4"))
                         },
                         LOUVRE_GITHUB_URL,
