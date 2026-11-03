@@ -252,6 +252,45 @@ pub async fn studio_artwork(
     }
 }
 
+pub async fn studio_thumbnail(
+    State(state): State<Arc<AppState>>,
+    Path(slug): Path<String>,
+) -> Response {
+    let artwork = match get_artwork(&state.database, &slug).await {
+        Ok(Some(artwork)) => artwork,
+        Ok(None) => return StatusCode::NOT_FOUND.into_response(),
+        Err(error) => {
+            tracing::error!(%error, artwork_slug = %slug, "failed to load Studio artwork thumbnail");
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
+    };
+    let Some(version) = artwork
+        .images
+        .first()
+        .and_then(|image| image.web_versions.first())
+    else {
+        return StatusCode::NOT_FOUND.into_response();
+    };
+
+    match state.storage.get(&version.s3_key).await {
+        Ok(bytes) => no_store(
+            (
+                [
+                    (CONTENT_TYPE, version.content_type.as_str()),
+                    (X_CONTENT_TYPE_OPTIONS, "nosniff"),
+                ],
+                bytes,
+            )
+                .into_response(),
+        ),
+        Err(StorageError::NotFound) => StatusCode::NOT_FOUND.into_response(),
+        Err(StorageError::Other(error)) => {
+            tracing::error!(%error, artwork_slug = %slug, "failed to fetch Studio artwork thumbnail");
+            StatusCode::BAD_GATEWAY.into_response()
+        }
+    }
+}
+
 pub async fn studio_update(
     State(state): State<Arc<AppState>>,
     Path(slug): Path<String>,

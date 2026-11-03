@@ -5,6 +5,9 @@ set dotenv-load := true
 run:
   ./scripts/run.sh
 
+aws-login:
+  aws login --profile default
+
 # Apply pending database migrations to DATABASE_URL.
 migrate:
   @cargo run -p louvre-cli -- migrate

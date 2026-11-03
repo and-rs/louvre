@@ -25,7 +25,11 @@ use tower_livereload::LiveReloadLayer;
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::builder()
+                .with_default_directive(tracing::Level::WARN.into())
+                .from_env_lossy(),
+        )
         .init();
 
     let static_files = ServeDir::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/static"));
@@ -72,6 +76,10 @@ async fn main() {
         .route(
             "/studio/artworks/{slug}",
             get(routes::studio_artwork).post(routes::studio_update),
+        )
+        .route(
+            "/studio/artworks/{slug}/thumbnail",
+            get(routes::studio_thumbnail),
         )
         .route(
             "/studio/artworks/{slug}/images",

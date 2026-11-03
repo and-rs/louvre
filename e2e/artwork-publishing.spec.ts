@@ -28,6 +28,12 @@ test("sign in, create a draft, upload an image, publish it, and view it publicly
   await page.getByRole("button", { name: "Upload image" }).click();
   await expect(page.getByText(secondAltText)).toBeVisible();
 
+  await page.goto("/studio");
+  const artworkRow = page.getByRole("listitem").filter({ hasText: title });
+  const thumbnail = artworkRow.locator('img[src="/studio/artworks/e2e-artwork/thumbnail"]');
+  await expect(thumbnail).toBeVisible();
+  await expect(thumbnail).toHaveJSProperty("naturalWidth", 1);
+
   await page.goto(`/artwork/${slug}`);
   await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();
 
@@ -53,4 +59,11 @@ test("sign in, create a draft, upload an image, publish it, and view it publicly
   await expect(page).toHaveURL(/\/studio\/artworks\/e2e-draft-without-image$/);
   await expect(page.getByLabel("Image file")).toBeVisible();
   await expect(page.getByRole("button", { name: "Publish artwork" })).toBeDisabled();
+  await page.goto("/studio");
+  const emptyArtworkRow = page.getByRole("listitem").filter({ hasText: "E2E Draft Without Image" });
+  await expect(emptyArtworkRow.getByRole("img", { name: "No image uploaded" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await page.goto(`/studio/artworks/${slug}/thumbnail`);
+  await expect(page).toHaveURL(/\/studio\/login/);
 });

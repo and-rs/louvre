@@ -29,12 +29,17 @@ pub fn studio(username: &str, artworks: &[Artwork]) -> Markup {
                 } @else {
                     ul class="divide-y divide-border" {
                         @for artwork in artworks {
-                            li class="flex flex-col gap-2 py-5 sm:flex-row sm:items-center sm:justify-between" {
-                                div {
+                            li class="flex items-center gap-4 py-5" {
+                                @if artwork.images.first().and_then(|image| image.web_versions.first()).is_some() {
+                                    img class="size-16 shrink-0 rounded-md border border-border object-cover" src=(format!("/studio/artworks/{}/thumbnail", artwork.slug)) alt="" aria-hidden="true" loading="lazy";
+                                } @else {
+                                    div role="img" aria-label="No image uploaded" class="size-16 shrink-0 rounded-md border border-border bg-muted" {}
+                                }
+                                div class="min-w-0 flex-1" {
                                     a class="font-medium hover:underline" href=(format!("/studio/artworks/{}", artwork.slug)) { (artwork.title) }
                                     p class="mt-1 text-sm text-muted-foreground" { "/artwork/" (artwork.slug) }
                                 }
-                                p class="text-sm text-muted-foreground capitalize" { (artwork.status) " · " (artwork.images.len()) " images" }
+                                p class="shrink-0 text-sm text-muted-foreground capitalize" { (artwork.status) " · " (artwork.images.len()) " images" }
                             }
                         }
                     }
