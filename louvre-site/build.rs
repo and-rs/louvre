@@ -13,7 +13,7 @@ const ASSETS: &[(&str, &str)] = &[
     ("FAVICON_32", "src/static/favicon/favicon-32x32.png"),
     ("FAVICON_ICO", "src/static/favicon/favicon.ico"),
     ("FAVICON_MANIFEST", "src/static/favicon/site.webmanifest"),
-    ("MU_JS", "src/static/js/mu.min.js"),
+    ("HTMX_JS", "src/static/js/htmx-4.0.1.min.js"),
     ("SITE_CSS", "src/static/css/site.css"),
     ("SITE_JS", "src/static/js/site.js"),
 ];

@@ -32,7 +32,7 @@ pub fn page(metadata: PageMetadata<'_>, content: Markup) -> Html<String> {
                 link rel="manifest" href=(assets::FAVICON_MANIFEST);
                 link rel="stylesheet" href=(assets::SITE_CSS);
             }
-            body class="min-h-screen pt-20 antialiased sm:pt-24" {
+            body hx-boost:inherited="true" hx-target:inherited="main" hx-select:inherited="main" hx-swap:inherited="outerHTML" hx-status:404:inherited="swap:outerHTML" hx-status:4xx:inherited="swap:none push:false" hx-status:5xx:inherited="swap:none push:false" class="min-h-screen pt-20 antialiased sm:pt-24" {
                 header class="fixed inset-x-0 top-0 z-50" {
                     div class="pt-3 sm:pt-4 page-shell" {
                         nav class="flex items-center gap-1 rounded-lg border bg-background/90 p-1 shadow-sm backdrop-blur" aria-label="Main navigation" {
@@ -41,11 +41,11 @@ pub fn page(metadata: PageMetadata<'_>, content: Markup) -> Html<String> {
                         }
                     }
                 }
-                main class="py-10 sm:py-16 page-shell" { (content) }
+                main hx-history-elt class="py-10 sm:py-16 page-shell" { (content) }
                 footer class="page-shell" {
                     (footer())
                 }
-                script src=(assets::MU_JS) defer {};
+                script src=(assets::HTMX_JS) defer {};
                 script src=(assets::SITE_JS) defer {};
             }
         }

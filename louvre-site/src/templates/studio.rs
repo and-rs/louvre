@@ -14,7 +14,7 @@ pub fn studio(username: &str, artworks: &[Artwork]) -> Markup {
                 }
                 div class="flex gap-2" {
                     a href="/studio/artworks/new" class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90" { "New artwork" }
-                    form method="post" action="/studio/logout" {
+                    form hx-boost="false" method="post" action="/studio/logout" {
                         button type="submit" class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none hover:bg-accent hover:text-accent-foreground" {
                             "Sign out"
                         }
@@ -70,7 +70,7 @@ pub fn studio_new(error: Option<&str>, fields: StudioNewFields<'_>) -> Markup {
                 p role="alert" class="mt-6 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" { (error) }
             }
             p class="mt-4 text-sm text-muted-foreground" { "Add the artwork details. You can save an incomplete draft and add or edit images before publishing." }
-            form data-mu="false" method="post" enctype="multipart/form-data" action="/studio/artworks" class="mt-8 border-t border-border pt-6 space-y-6" {
+            form hx-boost="false" method="post" enctype="multipart/form-data" action="/studio/artworks" class="mt-8 border-t border-border pt-6 space-y-6" {
                 div class="grid gap-5 sm:grid-cols-2" {
                     div class="space-y-2" {
                         label for="title" class="text-sm font-medium" { "Title" }
@@ -138,7 +138,7 @@ pub fn studio_artwork_at(artwork: &Artwork, error: Option<&str>, route_slug: &st
                 p role="alert" class="mt-6 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" { (error) }
             }
             @if artwork.status == "draft" {
-                form data-mu="false" method="post" action=(format!("/studio/artworks/{route_slug}")) class="mt-8 rounded-xl border border-border bg-card p-5 sm:p-7" {
+                form hx-boost="false" method="post" action=(format!("/studio/artworks/{route_slug}")) class="mt-8 rounded-xl border border-border bg-card p-5 sm:p-7" {
                     div class="mb-5" {
                         h2 class="text-xl font-semibold tracking-tight" { "Artwork details" }
                         p class="mt-1 text-sm text-muted-foreground" { "Add any details you have. Only the title and URL are required to save the draft." }
@@ -185,7 +185,7 @@ pub fn studio_artwork_at(artwork: &Artwork, error: Option<&str>, route_slug: &st
                             p class="text-xs text-muted-foreground" { "Use the arrows to change image order. Alternative text is editable per image." }
                         }
                     }
-                    form data-mu="false" data-image-uploader hidden method="post" enctype="multipart/form-data" action=(format!("/studio/artworks/{route_slug}/images")) class="mt-5 rounded-xl border border-dashed border-border bg-card p-5 sm:p-7" {
+                    form hx-boost="false" data-image-uploader hidden method="post" enctype="multipart/form-data" action=(format!("/studio/artworks/{route_slug}/images")) class="mt-5 rounded-xl border border-dashed border-border bg-card p-5 sm:p-7" {
                         label for="batch-images" class="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-lg bg-muted/50 p-6 text-center focus-within:ring-2 focus-within:ring-ring" {
                             span class="font-medium" { "Choose images or drop them here" }
                             span class="mt-1 text-sm text-muted-foreground" { "JPEG, PNG, WebP · up to 10 MB per image" }
@@ -199,7 +199,7 @@ pub fn studio_artwork_at(artwork: &Artwork, error: Option<&str>, route_slug: &st
                         }
                     }
                     noscript {
-                        form data-mu="false" method="post" enctype="multipart/form-data" action=(format!("/studio/artworks/{route_slug}/images")) class="mt-5 rounded-xl border border-border p-5 space-y-4" {
+                        form method="post" enctype="multipart/form-data" action=(format!("/studio/artworks/{route_slug}/images")) class="mt-5 rounded-xl border border-border p-5 space-y-4" {
                             p class="text-sm text-muted-foreground" { "Upload one image at a time with JavaScript disabled." }
                             div class="space-y-2" {
                                 label for="image" class="text-sm font-medium" { "Image file" }
@@ -232,23 +232,23 @@ pub fn studio_artwork_at(artwork: &Artwork, error: Option<&str>, route_slug: &st
                                                     }
                                                 }
                                             }
-                                            form data-mu="false" method="post" action=(format!("/studio/artworks/{route_slug}/images/{index}/alt-text")) class="space-y-2" {
+                                            form hx-boost="false" method="post" action=(format!("/studio/artworks/{route_slug}/images/{index}/alt-text")) class="space-y-2" {
                                                 label for=(format!("alt-text-{index}")) class="text-xs font-medium text-muted-foreground" { "Alternative text" }
                                                 input id=(format!("alt-text-{index}")) name="alt_text" type="text" value=(image.alt_text) required maxlength="500" class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm";
                                                 button type="submit" class="text-sm font-medium underline underline-offset-4 hover:text-muted-foreground" { "Save alt text" }
                                             }
                                             div class="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3" {
                                                 div class="flex gap-2" {
-                                                    form data-mu="false" method="post" action=(format!("/studio/artworks/{route_slug}/images/{index}/move")) {
+                                                    form hx-boost="false" method="post" action=(format!("/studio/artworks/{route_slug}/images/{index}/move")) {
                                                         input type="hidden" name="direction" value="up";
                                                         button type="submit" disabled[index == 0] aria-label=(format!("Move image {} earlier", index + 1)) class="size-9 rounded-md border border-border text-lg hover:bg-accent disabled:opacity-40" { "↑" }
                                                     }
-                                                    form data-mu="false" method="post" action=(format!("/studio/artworks/{route_slug}/images/{index}/move")) {
+                                                    form hx-boost="false" method="post" action=(format!("/studio/artworks/{route_slug}/images/{index}/move")) {
                                                         input type="hidden" name="direction" value="down";
                                                         button type="submit" disabled[index + 1 == artwork.images.len()] aria-label=(format!("Move image {} later", index + 1)) class="size-9 rounded-md border border-border text-lg hover:bg-accent disabled:opacity-40" { "↓" }
                                                     }
                                                 }
-                                                form data-mu="false" method="post" action=(format!("/studio/artworks/{route_slug}/images/{index}/delete")) onsubmit="return confirm('Remove this image?')" {
+                                                form hx-boost="false" method="post" action=(format!("/studio/artworks/{route_slug}/images/{index}/delete")) onsubmit="return confirm('Remove this image?')" {
                                                     button type="submit" class="rounded-md px-2 py-2 text-sm text-destructive hover:bg-destructive/10" { "Remove" }
                                                 }
                                             }
@@ -262,7 +262,7 @@ pub fn studio_artwork_at(artwork: &Artwork, error: Option<&str>, route_slug: &st
                         }
                     }
                 }
-                form data-mu="false" method="post" action=(format!("/studio/artworks/{route_slug}/publish")) class="mt-8 border-t border-border pt-6" {
+                form hx-boost="false" method="post" action=(format!("/studio/artworks/{route_slug}/publish")) class="mt-8 border-t border-border pt-6" {
                     button data-publish-button type="submit" disabled[artwork.images.is_empty()] class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50" { "Publish artwork" }
                     @if artwork.images.is_empty() {
                         p class="mt-2 text-sm text-muted-foreground" { "An image is required to publish. Artwork details remain optional." }
@@ -296,7 +296,7 @@ pub fn studio_login(error: Option<&str>) -> Markup {
                     (error)
                 }
             }
-            form method="post" action="/studio/login" class="mt-10 max-w-md border-t border-border pt-6 space-y-6" {
+            form hx-boost="false" method="post" action="/studio/login" class="mt-10 max-w-md border-t border-border pt-6 space-y-6" {
                 div class="space-y-2" {
                     label for="username" class="text-sm font-medium text-foreground" { "Username" }
                     input id="username" name="username" type="text" autocomplete="username" required autofocus class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground transition-shadow outline-none focus-visible:ring-2 focus-visible:ring-ring placeholder:text-muted-foreground";

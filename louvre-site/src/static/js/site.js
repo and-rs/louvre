@@ -1,4 +1,5 @@
 const themeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
+const initializedElements = new WeakSet()
 
 function currentTheme() {
   return localStorage.getItem("theme") || "system"
@@ -21,9 +22,9 @@ function applyTheme(theme) {
 
 function initThemeToggle() {
   const toggle = document.querySelector("[data-theme-toggle]")
-  if (!toggle || toggle.dataset.initialized) return
+  if (!toggle || initializedElements.has(toggle)) return
 
-  toggle.dataset.initialized = "true"
+  initializedElements.add(toggle)
   applyTheme(currentTheme())
   toggle.addEventListener("click", () => {
     const next = { system: "light", light: "dark", dark: "system" }[
@@ -37,13 +38,13 @@ function initThemeToggle() {
 
 function initArtworkGallery() {
   const gallery = document.querySelector("[data-artwork-gallery]")
-  if (!gallery || gallery.dataset.initialized) return
+  if (!gallery || initializedElements.has(gallery)) return
 
   const track = gallery.querySelector("[data-gallery-track]")
   const slides = [...gallery.querySelectorAll("[data-gallery-slide]")]
   if (slides.length < 2) return
 
-  gallery.dataset.initialized = "true"
+  initializedElements.add(gallery)
   const thumbnails = [...gallery.querySelectorAll("[data-gallery-select]")]
   const status = gallery.querySelector("[data-gallery-status]")
   let current = 0
@@ -110,9 +111,9 @@ function initArtworkGallery() {
 
 function initBatchImageUploader() {
   const form = document.querySelector("[data-image-uploader]")
-  if (!form || form.dataset.initialized) return
+  if (!form || initializedElements.has(form)) return
 
-  form.dataset.initialized = "true"
+  initializedElements.add(form)
   form.hidden = false
   const input = form.querySelector("[data-batch-files]")
   const queueElement = form.querySelector("[data-upload-queue]")
@@ -400,13 +401,15 @@ function initializePage() {
   initBatchImageUploader()
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  window.mu.init({ target: "main", source: "main", transition: false })
-  initializePage()
-})
+document.addEventListener("htmx:after:process", initializePage)
 
-document.addEventListener("mu:after-render", () => {
-  requestAnimationFrame(() => {
-    initializePage()
-  })
+document.addEventListener("htmx:before:response", (event) => {
+  const { ctx } = event.detail
+  // History refetches can redirect to sign-in after the session expires.
+  if (
+    ctx.request.headers["HX-History-Restore-Request"] &&
+    ctx.response.raw.redirected
+  ) {
+    ctx.replace = "true"
+  }
 })

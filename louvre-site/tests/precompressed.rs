@@ -37,7 +37,7 @@ async fn serves_brotli_js_asset() {
     let svc = ServeDir::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/static")).precompressed_br();
     let req = Request::builder()
         .header(ACCEPT_ENCODING, "br")
-        .uri("/js/mu.min.js")
+        .uri("/js/htmx-4.0.1.min.js")
         .body(())
         .unwrap();
 
