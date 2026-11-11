@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool, types::Json};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, FromRow)]
 pub struct Artwork {
     pub slug: String,
     pub title: String,
@@ -10,6 +10,7 @@ pub struct Artwork {
     pub medium: Option<String>,
     pub collection_number: Option<i32>,
     pub status: String,
+    #[sqlx(json)]
     pub images: Vec<ArtworkImage>,
 }
 
@@ -55,33 +56,6 @@ pub struct ArtworkImageInput<'a> {
     pub height: u32,
 }
 
-#[derive(FromRow)]
-struct ArtworkRow {
-    slug: String,
-    title: String,
-    description: Option<String>,
-    collection: Option<String>,
-    medium: Option<String>,
-    collection_number: Option<i32>,
-    status: String,
-    images: Json<Vec<ArtworkImage>>,
-}
-
-impl From<ArtworkRow> for Artwork {
-    fn from(row: ArtworkRow) -> Self {
-        Self {
-            slug: row.slug,
-            title: row.title,
-            description: row.description,
-            collection: row.collection,
-            medium: row.medium,
-            collection_number: row.collection_number,
-            status: row.status,
-            images: row.images.0,
-        }
-    }
-}
-
 const ARTWORK_COLUMNS: &str =
     "slug, title, description, collection, medium, collection_number, status, images";
 
@@ -91,7 +65,7 @@ pub async fn create_draft(pool: &PgPool, details: &ArtworkDetails) -> Result<Art
          VALUES ($1, $2, NULLIF($3, ''), NULLIF($4, ''), NULLIF($5, ''), $6) \
          RETURNING {ARTWORK_COLUMNS}"
     );
-    let row = sqlx::query_as::<_, ArtworkRow>(&query)
+    sqlx::query_as::<_, Artwork>(&query)
         .bind(&details.title)
         .bind(&details.slug)
         .bind(details.description.as_deref().unwrap_or_default())
@@ -99,26 +73,21 @@ pub async fn create_draft(pool: &PgPool, details: &ArtworkDetails) -> Result<Art
         .bind(details.medium.as_deref().unwrap_or_default())
         .bind(details.collection_number)
         .fetch_one(pool)
-        .await?;
-    Ok(row.into())
+        .await
 }
 
 pub async fn get_artwork(pool: &PgPool, slug: &str) -> Result<Option<Artwork>, sqlx::Error> {
     let query = format!("SELECT {ARTWORK_COLUMNS} FROM artworks WHERE slug = $1");
-    sqlx::query_as::<_, ArtworkRow>(&query)
+    sqlx::query_as::<_, Artwork>(&query)
         .bind(slug)
         .fetch_optional(pool)
         .await
-        .map(|row| row.map(Into::into))
 }
 
 pub async fn list_artworks(pool: &PgPool) -> Result<Vec<Artwork>, sqlx::Error> {
     let query =
         format!("SELECT {ARTWORK_COLUMNS} FROM artworks ORDER BY updated_at DESC, slug ASC");
-    sqlx::query_as::<_, ArtworkRow>(&query)
-        .fetch_all(pool)
-        .await
-        .map(|rows| rows.into_iter().map(Into::into).collect())
+    sqlx::query_as::<_, Artwork>(&query).fetch_all(pool).await
 }
 
 pub async fn list_published_artworks(pool: &PgPool) -> Result<Vec<Artwork>, sqlx::Error> {
@@ -126,10 +95,7 @@ pub async fn list_published_artworks(pool: &PgPool) -> Result<Vec<Artwork>, sqlx
         "SELECT {ARTWORK_COLUMNS} FROM artworks WHERE status = 'published' \
          ORDER BY collection_number ASC NULLS LAST, slug ASC"
     );
-    sqlx::query_as::<_, ArtworkRow>(&query)
-        .fetch_all(pool)
-        .await
-        .map(|rows| rows.into_iter().map(Into::into).collect())
+    sqlx::query_as::<_, Artwork>(&query).fetch_all(pool).await
 }
 
 pub async fn update_draft(
@@ -143,7 +109,7 @@ pub async fn update_draft(
              updated_at = CURRENT_TIMESTAMP \
          WHERE slug = $1 AND status = 'draft' RETURNING {ARTWORK_COLUMNS}"
     );
-    sqlx::query_as::<_, ArtworkRow>(&query)
+    sqlx::query_as::<_, Artwork>(&query)
         .bind(slug)
         .bind(&details.slug)
         .bind(&details.title)
@@ -153,7 +119,6 @@ pub async fn update_draft(
         .bind(details.collection_number)
         .fetch_optional(pool)
         .await
-        .map(|row| row.map(Into::into))
 }
 
 pub async fn add_artwork_image(
@@ -177,7 +142,7 @@ pub async fn add_artwork_image(
              AND NOT images @> jsonb_build_array(jsonb_build_object('upload_id', $5)) \
          RETURNING {ARTWORK_COLUMNS}"
     );
-    sqlx::query_as::<_, ArtworkRow>(&query)
+    sqlx::query_as::<_, Artwork>(&query)
         .bind(slug)
         .bind(image.alt_text)
         .bind(image.s3_key)
@@ -187,7 +152,6 @@ pub async fn add_artwork_image(
         .bind(image.height as i64)
         .fetch_optional(pool)
         .await
-        .map(|row| row.map(Into::into))
 }
 
 pub async fn update_artwork_image_alt_text(
@@ -202,13 +166,12 @@ pub async fn update_artwork_image_alt_text(
          WHERE slug = $1 AND status = 'draft' AND $2 < jsonb_array_length(images) \
          RETURNING {ARTWORK_COLUMNS}"
     );
-    sqlx::query_as::<_, ArtworkRow>(&query)
+    sqlx::query_as::<_, Artwork>(&query)
         .bind(slug)
         .bind(position as i64)
         .bind(alt_text)
         .fetch_optional(pool)
         .await
-        .map(|row| row.map(Into::into))
 }
 
 pub async fn move_artwork_image(
@@ -221,14 +184,13 @@ pub async fn move_artwork_image(
     let query = format!(
         "SELECT {ARTWORK_COLUMNS} FROM artworks WHERE slug = $1 AND status = 'draft' FOR UPDATE"
     );
-    let Some(row) = sqlx::query_as::<_, ArtworkRow>(&query)
+    let Some(mut artwork) = sqlx::query_as::<_, Artwork>(&query)
         .bind(slug)
         .fetch_optional(&mut *transaction)
         .await?
     else {
         return Ok(None);
     };
-    let mut artwork = Artwork::from(row);
     if from >= artwork.images.len() || to >= artwork.images.len() {
         return Ok(None);
     }
@@ -241,13 +203,13 @@ pub async fn move_artwork_image(
         "UPDATE artworks SET images = $2, updated_at = CURRENT_TIMESTAMP \
          WHERE slug = $1 AND status = 'draft' RETURNING {ARTWORK_COLUMNS}"
     );
-    let row = sqlx::query_as::<_, ArtworkRow>(&query)
+    let artwork = sqlx::query_as::<_, Artwork>(&query)
         .bind(slug)
         .bind(Json(artwork.images))
         .fetch_optional(&mut *transaction)
         .await?;
     transaction.commit().await?;
-    Ok(row.map(Into::into))
+    Ok(artwork)
 }
 
 pub async fn remove_artwork_image(
@@ -259,14 +221,13 @@ pub async fn remove_artwork_image(
     let query = format!(
         "SELECT {ARTWORK_COLUMNS} FROM artworks WHERE slug = $1 AND status = 'draft' FOR UPDATE"
     );
-    let Some(row) = sqlx::query_as::<_, ArtworkRow>(&query)
+    let Some(mut artwork) = sqlx::query_as::<_, Artwork>(&query)
         .bind(slug)
         .fetch_optional(&mut *transaction)
         .await?
     else {
         return Ok(None);
     };
-    let mut artwork = Artwork::from(row);
     if position >= artwork.images.len() {
         return Ok(None);
     }
@@ -294,9 +255,8 @@ pub async fn publish_artwork(pool: &PgPool, slug: &str) -> Result<Option<Artwork
          WHERE slug = $1 AND status = 'draft' AND jsonb_array_length(images) > 0 \
          RETURNING {ARTWORK_COLUMNS}"
     );
-    sqlx::query_as::<_, ArtworkRow>(&query)
+    sqlx::query_as::<_, Artwork>(&query)
         .bind(slug)
         .fetch_optional(pool)
         .await
-        .map(|row| row.map(Into::into))
 }

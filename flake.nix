@@ -80,6 +80,7 @@
               brotli
               terraformBinary
               awscli2
+              jq
               just
               biome
               nodejs_22

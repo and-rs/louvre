@@ -1,12 +1,22 @@
 import { createServer } from "node:http";
+import { readFileSync } from "node:fs";
 
-const objects = new Map();
+// Existing production-style object. Dev must only ever read this server.
+const objects = new Map([
+  ["louvre-e2e/artworks/s3-reference/test.png", { body: readFileSync("e2e/fixtures/test.png"), contentType: "image/png" }],
+]);
 const port = Number(process.env.S3_MOCK_PORT ?? 19000);
+let mutations = 0;
 
 const server = createServer(async (request, response) => {
   const url = new URL(request.url, "http://localhost");
   if (url.pathname === "/health") {
-    response.writeHead(200).end("ok");
+    response.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ mutations }));
+    return;
+  }
+  if (request.method !== "GET") {
+    mutations++;
+    response.writeHead(405).end();
     return;
   }
 
@@ -18,42 +28,20 @@ const server = createServer(async (request, response) => {
   }
   const storageKey = `${bucket}/${key}`;
 
-  if (request.method === "PUT") {
-    const chunks = [];
-    for await (const chunk of request) chunks.push(chunk);
-    objects.set(storageKey, {
-      body: Buffer.concat(chunks),
-      contentType: request.headers["content-type"] ?? "application/octet-stream",
-    });
-    response.writeHead(200, { etag: '"e2e"' }).end();
-    return;
-  }
-
-  if (request.method === "GET") {
-    const object = objects.get(storageKey);
-    if (!object) {
-      response
-        .writeHead(404, { "content-type": "application/xml" })
-        .end("<Error><Code>NoSuchKey</Code><Message>Not found</Message></Error>");
-      return;
-    }
+  const object = objects.get(storageKey);
+  if (!object) {
     response
-      .writeHead(200, {
-        "content-type": object.contentType,
-        "content-length": object.body.length,
-        etag: '"e2e"',
-      })
-      .end(object.body);
+      .writeHead(404, { "content-type": "application/xml" })
+      .end("<Error><Code>NoSuchKey</Code><Message>Not found</Message></Error>");
     return;
   }
-
-  if (request.method === "DELETE") {
-    objects.delete(storageKey);
-    response.writeHead(204).end();
-    return;
-  }
-
-  response.writeHead(405).end();
+  response
+    .writeHead(200, {
+      "content-type": object.contentType,
+      "content-length": object.body.length,
+      etag: '"e2e"',
+    })
+    .end(object.body);
 });
 
 server.listen(port, "127.0.0.1");

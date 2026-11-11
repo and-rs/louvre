@@ -125,7 +125,6 @@ function initBatchImageUploader() {
   let savedCount = Number(savedCountElement?.textContent || 0)
   let queue = []
   let uploading = false
-  let nextId = 0
 
   function setStatus(message) {
     statusElement.textContent = message
@@ -229,7 +228,7 @@ function initBatchImageUploader() {
         remove.disabled = uploading
         remove.addEventListener("click", () => {
           URL.revokeObjectURL(item.preview)
-          queue = queue.filter((queued) => queued.id !== item.id)
+          queue = queue.filter((queued) => queued.uploadId !== item.uploadId)
           renderQueue()
         })
         controls.append(remove)
@@ -252,7 +251,6 @@ function initBatchImageUploader() {
       )
         continue
       const item = {
-        id: nextId++,
         file,
         uploadId: crypto.randomUUID(),
         preview: URL.createObjectURL(file),
@@ -401,6 +399,8 @@ function initializePage() {
   initBatchImageUploader()
 }
 
+// Deferred scripts can load after htmx has processed the initial document.
+initializePage()
 document.addEventListener("htmx:after:process", initializePage)
 
 document.addEventListener("htmx:before:response", (event) => {

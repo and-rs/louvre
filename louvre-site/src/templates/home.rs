@@ -6,7 +6,7 @@ use crate::branding::site_name;
 pub fn home(artworks: &[Artwork]) -> Markup {
     html! {
         div class="mx-auto flex max-w-6xl flex-col gap-10 sm:gap-14" {
-            header class="max-w-2xl border-b border-border pb-8 sm:pb-10" {
+            header class="max-w-2xl sm:pb-10" {
                 p class="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase" { "Selected works" }
                 h1 class="mt-3 page-title" { (site_name()) }
                 p class="mt-4 text-lg leading-8 text-muted-foreground" { "A collection of artworks, gathered in one place." }

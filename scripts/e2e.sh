@@ -41,6 +41,7 @@ createdb -h 127.0.0.1 -p "$pg_port" -U louvre louvre_e2e
 export DATABASE_URL="postgres://louvre@127.0.0.1:$pg_port/louvre_e2e"
 export PORT=3300
 export S3_BUCKET=louvre-e2e
+export DEV_UPLOADS_DIR="$tmp_dir/uploads"
 export S3_MOCK_PORT="$s3_port"
 export S3_ENDPOINT_URL="http://127.0.0.1:$s3_port"
 export AWS_REGION=us-east-1
@@ -62,7 +63,7 @@ if [[ "$mode" == "serve" ]]; then
   app_pid=$!
   printf 'E2E site: http://127.0.0.1:%s\n' "$PORT"
   printf 'Studio login: %s / e2e-password\n' "$STUDIO_USERNAME"
-  printf 'Test database and S3 are isolated; press Ctrl-C to stop.\n'
+  printf 'Test database, local uploads, and read-only S3 fixture are isolated; press Ctrl-C to stop.\n'
   wait "$app_pid"
 else
   npm run e2e

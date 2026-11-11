@@ -700,123 +700,47 @@ async fn parse_artwork_multipart(
             });
         };
 
-        match name.as_str() {
-            "title" if form.title.is_none() => {
-                form.title = match read_text_field(field).await {
-                    Ok(value) => Some(value),
-                    Err((status, message)) => {
-                        return Err(ArtworkMultipartError {
-                            form,
-                            status,
-                            message,
-                        });
-                    }
-                };
-            }
-            "slug" if form.slug.is_none() => {
-                form.slug = match read_text_field(field).await {
-                    Ok(value) => Some(value),
-                    Err((status, message)) => {
-                        return Err(ArtworkMultipartError {
-                            form,
-                            status,
-                            message,
-                        });
-                    }
-                };
-            }
-            "description" if form.description.is_none() => {
-                form.description = match read_text_field(field).await {
-                    Ok(value) => Some(value),
-                    Err((status, message)) => {
-                        return Err(ArtworkMultipartError {
-                            form,
-                            status,
-                            message,
-                        });
-                    }
-                };
-            }
-            "collection" if form.collection.is_none() => {
-                form.collection = match read_text_field(field).await {
-                    Ok(value) => Some(value),
-                    Err((status, message)) => {
-                        return Err(ArtworkMultipartError {
-                            form,
-                            status,
-                            message,
-                        });
-                    }
-                };
-            }
-            "medium" if form.medium.is_none() => {
-                form.medium = match read_text_field(field).await {
-                    Ok(value) => Some(value),
-                    Err((status, message)) => {
-                        return Err(ArtworkMultipartError {
-                            form,
-                            status,
-                            message,
-                        });
-                    }
-                };
-            }
-            "collection_number" if form.collection_number.is_none() => {
-                form.collection_number = match read_text_field(field).await {
-                    Ok(value) => Some(value),
-                    Err((status, message)) => {
-                        return Err(ArtworkMultipartError {
-                            form,
-                            status,
-                            message,
-                        });
-                    }
-                };
-            }
-            "upload_id" if form.upload_id.is_none() => {
-                form.upload_id = match read_text_field(field).await {
-                    Ok(value) => Some(value),
-                    Err((status, message)) => {
-                        return Err(ArtworkMultipartError {
-                            form,
-                            status,
-                            message,
-                        });
-                    }
-                };
-            }
+        let result = match name.as_str() {
             "image" if !form.image_seen => {
                 form.image_seen = true;
-                form.image = match parse_image_field(field).await {
-                    Ok(image) => image,
-                    Err((status, message)) => {
+                parse_image_field(field)
+                    .await
+                    .map(|image| form.image = image)
+            }
+            name => {
+                let destination = match name {
+                    "title" if form.title.is_none() => &mut form.title,
+                    "slug" if form.slug.is_none() => &mut form.slug,
+                    "description" if form.description.is_none() => &mut form.description,
+                    "collection" if form.collection.is_none() => &mut form.collection,
+                    "medium" if form.medium.is_none() => &mut form.medium,
+                    "collection_number" if form.collection_number.is_none() => {
+                        &mut form.collection_number
+                    }
+                    "upload_id" if form.upload_id.is_none() => &mut form.upload_id,
+                    "alt_text" if form.alt_text.is_none() => &mut form.alt_text,
+                    _ => {
                         return Err(ArtworkMultipartError {
                             form,
-                            status,
-                            message,
+                            status: StatusCode::BAD_REQUEST,
+                            message: "The form contains duplicate or unexpected fields.",
                         });
                     }
                 };
-            }
-            "alt_text" if form.alt_text.is_none() => {
-                form.alt_text = match parse_alt_text_field(field).await {
-                    Ok(value) => Some(value),
-                    Err((status, message)) => {
-                        return Err(ArtworkMultipartError {
-                            form,
-                            status,
-                            message,
-                        });
-                    }
+                let value = if name == "alt_text" {
+                    parse_alt_text_field(field).await
+                } else {
+                    read_text_field(field).await
                 };
+                value.map(|value| *destination = Some(value))
             }
-            _ => {
-                return Err(ArtworkMultipartError {
-                    form,
-                    status: StatusCode::BAD_REQUEST,
-                    message: "The form contains duplicate or unexpected fields.",
-                });
-            }
+        };
+        if let Err((status, message)) = result {
+            return Err(ArtworkMultipartError {
+                form,
+                status,
+                message,
+            });
         }
     }
 }
@@ -851,12 +775,6 @@ async fn parse_image_field(
             "Choose an image no larger than 10 MB.",
         ));
     }
-    let Some((extension, content_type)) = image_type(&bytes) else {
-        return Err((
-            StatusCode::UNSUPPORTED_MEDIA_TYPE,
-            "Upload a valid JPEG, PNG, or WebP image.",
-        ));
-    };
     let reader = image::ImageReader::new(Cursor::new(&bytes))
         .with_guessed_format()
         .map_err(|error| {
@@ -866,6 +784,17 @@ async fn parse_image_field(
                 "Upload a valid JPEG, PNG, or WebP image.",
             )
         })?;
+    let (extension, content_type) = match reader.format() {
+        Some(image::ImageFormat::Jpeg) => ("jpg", "image/jpeg"),
+        Some(image::ImageFormat::Png) => ("png", "image/png"),
+        Some(image::ImageFormat::WebP) => ("webp", "image/webp"),
+        _ => {
+            return Err((
+                StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                "Upload a valid JPEG, PNG, or WebP image.",
+            ));
+        }
+    };
     let dimensions = reader.into_dimensions().map_err(|error| {
         tracing::warn!(%error, "failed to read uploaded image dimensions");
         (
@@ -909,7 +838,7 @@ async fn store_artwork_image(
         .put(&key, upload.image.bytes, upload.image.content_type)
         .await
     {
-        tracing::error!(?error, %key, "failed to upload artwork image to S3");
+        tracing::error!(?error, %key, "failed to store artwork image");
         return Err(ImageStoreError::Storage);
     }
 
@@ -962,7 +891,7 @@ fn image_store_error(error: &ImageStoreError, creating: bool) -> (StatusCode, &'
         ),
         (ImageStoreError::Storage, false) => (
             StatusCode::BAD_GATEWAY,
-            "The image could not be stored. Check S3 configuration and try again.",
+            "The image could not be stored. Check storage configuration and try again.",
         ),
         (ImageStoreError::NotDraft, _) => (
             StatusCode::CONFLICT,
@@ -1156,18 +1085,6 @@ fn parse_upload_id(value: Option<&str>) -> Result<Uuid, ()> {
     }
 }
 
-fn image_type(bytes: &[u8]) -> Option<(&'static str, &'static str)> {
-    if bytes.starts_with(&[0xff, 0xd8, 0xff]) {
-        Some(("jpg", "image/jpeg"))
-    } else if bytes.starts_with(b"\x89PNG\r\n\x1a\n") {
-        Some(("png", "image/png"))
-    } else if bytes.len() >= 12 && &bytes[..4] == b"RIFF" && &bytes[8..12] == b"WEBP" {
-        Some(("webp", "image/webp"))
-    } else {
-        None
-    }
-}
-
 fn is_unique_violation(error: &sqlx::Error) -> bool {
     matches!(error, sqlx::Error::Database(database_error) if database_error.code().as_deref() == Some("23505"))
 }
@@ -1181,6 +1098,32 @@ async fn delete_orphaned_upload(storage: &Storage, key: &str) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use axum::{body::Body, extract::FromRequest, http::Request};
+
+    async fn parse_test_form(
+        fields: &[(&str, Option<&str>, &[u8])],
+    ) -> Result<ArtworkMultipart, ArtworkMultipartError> {
+        let mut body = Vec::new();
+        for (name, filename, bytes) in fields {
+            body.extend_from_slice(
+                format!("--test-boundary\r\nContent-Disposition: form-data; name=\"{name}\"")
+                    .as_bytes(),
+            );
+            if let Some(filename) = filename {
+                body.extend_from_slice(format!("; filename=\"{filename}\"").as_bytes());
+            }
+            body.extend_from_slice(b"\r\n\r\n");
+            body.extend_from_slice(bytes);
+            body.extend_from_slice(b"\r\n");
+        }
+        body.extend_from_slice(b"--test-boundary--\r\n");
+        let request = Request::post("/")
+            .header(CONTENT_TYPE, "multipart/form-data; boundary=test-boundary")
+            .body(Body::from(body))
+            .unwrap();
+        let multipart = Multipart::from_request(request, &()).await.unwrap();
+        parse_artwork_multipart(multipart).await
+    }
 
     #[test]
     fn validates_public_slugs() {
@@ -1191,18 +1134,114 @@ mod tests {
         assert!(!valid_slug("quiet/study"));
     }
 
-    #[test]
-    fn detects_supported_image_signatures() {
-        assert_eq!(image_type(&[0xff, 0xd8, 0xff]), Some(("jpg", "image/jpeg")));
-        assert_eq!(
-            image_type(b"\x89PNG\r\n\x1a\nrest"),
-            Some(("png", "image/png"))
-        );
-        assert_eq!(
-            image_type(b"RIFFxxxxWEBPdata"),
-            Some(("webp", "image/webp"))
-        );
-        assert_eq!(image_type(b"not an image"), None);
+    #[tokio::test]
+    async fn multipart_reads_text_fields_and_accepts_an_empty_optional_image() {
+        let form = parse_test_form(&[
+            ("title", None, b"Study"),
+            ("slug", None, b"study"),
+            ("description", None, b"Description"),
+            ("collection", None, b"Studies"),
+            ("medium", None, b"Oil"),
+            ("collection_number", None, b"12"),
+            ("upload_id", None, b"client-id"),
+            ("alt_text", None, b"  Alternative text  "),
+            ("image", Some(""), b""),
+        ])
+        .await
+        .unwrap_or_else(|error| panic!("{}", error.message));
+
+        assert_eq!(form.title.as_deref(), Some("Study"));
+        assert_eq!(form.slug.as_deref(), Some("study"));
+        assert_eq!(form.description.as_deref(), Some("Description"));
+        assert_eq!(form.collection.as_deref(), Some("Studies"));
+        assert_eq!(form.medium.as_deref(), Some("Oil"));
+        assert_eq!(form.collection_number.as_deref(), Some("12"));
+        assert_eq!(form.upload_id.as_deref(), Some("client-id"));
+        assert_eq!(form.alt_text.as_deref(), Some("Alternative text"));
+        assert!(form.image_seen);
+        assert!(form.image.is_none());
+    }
+
+    #[tokio::test]
+    async fn multipart_rejects_duplicates_and_unknown_fields_without_losing_entered_values() {
+        for name in [
+            "title",
+            "slug",
+            "description",
+            "collection",
+            "medium",
+            "collection_number",
+            "upload_id",
+            "alt_text",
+            "image",
+            "unexpected",
+        ] {
+            let mut fields = vec![("title", None, b"Saved title".as_slice())];
+            if name != "title" && name != "unexpected" {
+                fields.push((name, Some(""), b""));
+            }
+            fields.push((name, Some(""), b""));
+            let error = parse_test_form(&fields).await.err().expect(name);
+            assert_eq!(error.status, StatusCode::BAD_REQUEST, "{name}");
+            assert_eq!(
+                error.message,
+                "The form contains duplicate or unexpected fields."
+            );
+            assert_eq!(error.form.title.as_deref(), Some("Saved title"), "{name}");
+        }
+    }
+
+    #[tokio::test]
+    async fn uploaded_images_use_detected_formats_and_dimensions() {
+        for (format, extension, content_type) in [
+            (image::ImageFormat::Jpeg, "jpg", "image/jpeg"),
+            (image::ImageFormat::Png, "png", "image/png"),
+            (image::ImageFormat::WebP, "webp", "image/webp"),
+        ] {
+            let mut bytes = Cursor::new(Vec::new());
+            image::DynamicImage::new_rgb8(2, 3)
+                .write_to(&mut bytes, format)
+                .unwrap();
+            let form = parse_test_form(&[("image", Some("misleading.gif"), bytes.get_ref())])
+                .await
+                .unwrap_or_else(|error| panic!("{}", error.message));
+            let image = form.image.unwrap();
+            assert_eq!(image.extension, extension);
+            assert_eq!(image.content_type, content_type);
+            assert_eq!((image.width, image.height), (2, 3));
+            assert_eq!(image.bytes, bytes.into_inner());
+        }
+    }
+
+    #[tokio::test]
+    async fn multipart_preserves_values_when_image_or_alt_text_validation_fails() {
+        for bytes in [
+            b"not an image".as_slice(),
+            b"GIF89a",
+            b"\xff\xd8\xff",
+            b"\x89PNG\r\n\x1a\n",
+            b"RIFFxxxxWEBP",
+        ] {
+            let error = parse_test_form(&[
+                ("title", None, b"Saved title"),
+                ("image", Some("image.png"), bytes),
+            ])
+            .await
+            .err()
+            .expect("invalid image must fail");
+            assert_eq!(error.status, StatusCode::UNSUPPORTED_MEDIA_TYPE);
+            assert_eq!(error.form.title.as_deref(), Some("Saved title"));
+        }
+        let long_alt_text = "x".repeat(501);
+        let error = parse_test_form(&[
+            ("title", None, b"Saved title"),
+            ("alt_text", None, long_alt_text.as_bytes()),
+        ])
+        .await
+        .err()
+        .expect("oversized alt text must fail");
+        assert_eq!(error.status, StatusCode::BAD_REQUEST);
+        assert_eq!(error.form.title.as_deref(), Some("Saved title"));
     }
 
     #[test]

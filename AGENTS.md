@@ -13,6 +13,7 @@
 
 ## Template Styling
 
+- **IMPERATIVE: Preserve reusable components, icons, their variants, and theme scaffolding (semantic tokens, light/dark declarations, and reusable CSS classes) even when currently unused.** They are intentional shared UI infrastructure, not dead code. Do not remove them or their supporting exports/dead-code allowances during cleanup unless the user explicitly requests their removal.
 - Use semantic shadcn utilities (`bg-card`, `text-muted-foreground`, `border-border`) instead of literal colors in templates.
 - Place reusable Maud components in `louvre-site/src/templates/components/` and re-export them through `louvre-site/src/templates/components/mod.rs`.
 - Use the shared `max-w-4xl px-4` shell for navigation, main content, and footer; page-specific content may use a narrower nested max width.

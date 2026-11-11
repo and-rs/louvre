@@ -20,6 +20,10 @@ railway-admin:
 local-admin:
   @cargo run -p louvre-cli -- admin local
 
+# Copy missing artwork records from linked Railway PostgreSQL over SSH into local PostgreSQL.
+dev-import-artworks:
+  bash scripts/dev-import-artworks.sh
+
 # Format Rust, templates, styles, and JavaScript.
 format:
   ./scripts/format.sh

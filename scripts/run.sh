@@ -4,14 +4,6 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
-if [[ -f .secrets/louvre-app-creds.json ]]; then
-  AWS_ACCESS_KEY_ID="$(awk -F'"' '/"AccessKeyId"/{print $4; exit}' .secrets/louvre-app-creds.json)"
-  AWS_SECRET_ACCESS_KEY="$(awk -F'"' '/"SecretAccessKey"/{print $4; exit}' .secrets/louvre-app-creds.json)"
-
-  export AWS_ACCESS_KEY_ID
-  export AWS_SECRET_ACCESS_KEY
-fi
-
 local_pgdata="$repo_root/.local/postgres"
 local_database_url="postgres://louvre@127.0.0.1:55432/louvre"
 local_database_url_pattern='^postgres(ql)?://([^/@]+@)?(localhost|127\.0\.0\.1|\[::1\]):55432/louvre([?].*)?$'

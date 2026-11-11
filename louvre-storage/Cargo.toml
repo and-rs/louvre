@@ -9,6 +9,7 @@ aws-config.workspace = true
 aws-sdk-s3.workspace = true
 serde.workspace = true
 sqlx.workspace = true
+tokio = { workspace = true, features = ["fs"] }
 
 [dev-dependencies]
-tokio.workspace = true
+uuid.workspace = true

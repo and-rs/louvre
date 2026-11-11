@@ -45,8 +45,22 @@ async fn main() {
     let static_files = static_files.precompressed_br();
 
     let storage = Storage::from_env().await;
+    #[cfg(feature = "dev")]
+    let storage = storage.with_local_uploads(
+        std::env::var("DEV_UPLOADS_DIR").unwrap_or_else(|_| ".local/uploads".into()),
+    );
     let database_url =
         std::env::var("DATABASE_URL").expect("DATABASE_URL must be set to run the application");
+    #[cfg(feature = "dev")]
+    {
+        let options: sqlx::postgres::PgConnectOptions = database_url
+            .parse()
+            .expect("invalid development DATABASE_URL");
+        assert!(
+            matches!(options.get_host(), "localhost" | "127.0.0.1" | "::1"),
+            "development requires local PostgreSQL; refusing remote DATABASE_URL"
+        );
+    }
     let database = postgres_pool(&database_url)
         .await
         .expect("failed to connect to PostgreSQL");

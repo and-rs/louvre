@@ -30,10 +30,16 @@ test("sign in, create a draft, upload an image, publish it, and view it publicly
   const secondAltText = "A second test artwork image";
   const thirdAltText = "A third test artwork image";
   const png = await readFile(resolve("e2e/fixtures/test.png"));
+  await expect(page.locator("[data-image-uploader]")).toBeVisible();
   await page.locator("[data-batch-files]").setInputFiles([
     { name: "batch-two.png", mimeType: "image/png", buffer: png },
     { name: "batch-three.png", mimeType: "image/png", buffer: png },
+    { name: "remove-from-queue.png", mimeType: "image/png", buffer: png },
   ]);
+  const removedItem = page.locator('[data-upload-name="remove-from-queue.png"]');
+  await removedItem.getByRole("button", { name: "Remove", exact: true }).click();
+  await expect(removedItem).toHaveCount(0);
+  await expect(page.locator("[data-upload-name]")).toHaveCount(2);
   await page.getByLabel("Alternative text for batch-two.png").fill(secondAltText);
   await page.getByLabel("Alternative text for batch-three.png").fill(thirdAltText);
   const retryUploadId = await page.locator('[data-upload-name="batch-two.png"]').getAttribute("data-upload-id");
@@ -148,4 +154,6 @@ test("sign in, create a draft, upload an image, publish it, and view it publicly
   await page.getByRole("button", { name: "Sign out" }).click();
   await page.goto(`/studio/artworks/${slug}/thumbnail`);
   await expect(page).toHaveURL(/\/studio\/login/);
+  const s3Health = await page.request.get(`${process.env.S3_ENDPOINT_URL}/health`);
+  expect(await s3Health.json()).toEqual({ mutations: 0 });
 });
