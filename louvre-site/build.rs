@@ -21,6 +21,15 @@ const ASSETS: &[(&str, &str)] = &[
 fn main() {
     println!("cargo:rerun-if-env-changed=CARGO_FEATURE_DEV");
     let development = env::var_os("CARGO_FEATURE_DEV").is_some();
+    let apple_linker = "/Library/Developer/CommandLineTools/usr/bin/ld";
+    if development
+        && cfg!(target_os = "macos")
+        && env::var_os("HOST") == env::var_os("TARGET")
+        && env::var("PROFILE").as_deref() == Ok("debug")
+        && Path::new(apple_linker).is_file()
+    {
+        println!("cargo:rustc-link-arg-bin=louvre-server=--ld-path={apple_linker}");
+    }
     let mut output = String::new();
 
     for (name, path) in ASSETS {
