@@ -1,25 +1,13 @@
 import { expect, test } from "@playwright/test";
-import { readFileSync } from "node:fs";
+import { publishFixture } from "./artwork-cli";
 
 const siteName = process.env.SITE_NAME?.trim() || "Louvre";
 
 for (const width of [1280, 390]) {
   test(`boosted navigation and restored gallery work at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
-    await page.request.post("/studio/login", {
-      form: { username: "e2e-owner", password: "e2e-password" },
-    });
     const slug = `navigation-artwork-${width}`;
-    const image = { name: "test.png", mimeType: "image/png", buffer: readFileSync("e2e/fixtures/test.png") };
-    const draft = await page.request.post("/studio/artworks", {
-      multipart: { title: slug, slug, alt_text: "First navigation image", image },
-    });
-    expect(draft.ok()).toBeTruthy();
-    const upload = await page.request.post(`/studio/artworks/${slug}/images`, {
-      multipart: { alt_text: "Second navigation image", image },
-    });
-    expect(upload.ok()).toBeTruthy();
-    expect((await page.request.post(`/studio/artworks/${slug}/publish`)).ok()).toBeTruthy();
+    publishFixture(slug, slug, "First navigation image", "Second navigation image");
 
     await page.goto("/");
     await expect(page.locator('script[src*="/static/js/htmx-4.0.1.min.js"]')).toHaveCount(1);
@@ -75,6 +63,13 @@ for (const width of [1280, 390]) {
     await page.getByRole("link", { name: "Raw asset" }).click();
     expect((await assetRequest).headers()["hx-request"]).toBeUndefined();
     await expect(page).toHaveURL(/favicon-32x32\.png$/);
+    const dimensions = await page.evaluate(async () => {
+      const icon = new Image();
+      icon.src = location.href;
+      await icon.decode();
+      return [icon.naturalWidth, icon.naturalHeight];
+    });
+    expect(dimensions).toEqual([32, 32]);
   });
 }
 
@@ -107,64 +102,16 @@ test("failed boosted requests preserve the current page and URL", async ({ page 
   }
 });
 
-test("Studio keeps auth forms native and rechecks auth on history navigation", async ({ page, context }) => {
-  await page.goto("/studio/login");
-  await page.getByLabel("Username").fill("e2e-owner");
-  await page.getByLabel("Password").fill("wrong-password");
-  const loginRequest = page.waitForRequest((request) =>
-    request.url().endsWith("/studio/login") && request.method() === "POST"
-  );
-  await page.getByRole("button", { name: "Sign in" }).click();
-  expect((await loginRequest).isNavigationRequest()).toBeTruthy();
-  expect((await loginRequest).headers()["hx-request"]).toBeUndefined();
-  await expect(page.getByRole("alert")).toHaveText("Those details did not match.");
-  await page.getByLabel("Username").fill("e2e-owner");
-  await page.getByLabel("Password").fill("e2e-password");
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/studio$/);
-  await page.getByRole("link", { name: "New artwork" }).click();
-  await expect(page).toHaveURL(/\/studio\/artworks\/new$/);
-  await page.getByRole("navigation").getByRole("link", { name: siteName, exact: true }).click();
-  await expect(page).toHaveURL(/\/$/);
-  await page.goBack();
-  await expect(page.getByRole("button", { name: "Create draft" })).toBeVisible();
-  await page.goBack();
-  await expect(page.getByRole("heading", { name: "Studio", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Sign out" }).click();
-  await expect(page).toHaveURL(/\/studio\/login$/);
-
-  await page.getByLabel("Username").fill("e2e-owner");
-  await page.getByLabel("Password").fill("e2e-password");
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/studio$/);
-  await context.clearCookies();
-  await page.getByRole("link", { name: "New artwork" }).click();
-  await expect(page).toHaveURL(/\/studio\/login\?next=%2Fstudio%2Fartworks%2Fnew$/);
-  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
-
-  await page.getByLabel("Username").fill("e2e-owner");
-  await page.getByLabel("Password").fill("e2e-password");
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/studio$/);
-  await page.getByRole("navigation").getByRole("link", { name: siteName, exact: true }).click();
-  await expect(page).toHaveURL(/\/$/);
-  await context.clearCookies();
-  await page.goBack();
-  await expect(page).toHaveURL(/\/studio\/login\?next=%2Fstudio$/);
-  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
-});
-
-test("navigation and sign in work without JavaScript", async ({ browser }) => {
+test("public navigation works without JavaScript", async ({ browser }) => {
+  const slug = "no-javascript-artwork";
+  publishFixture(slug, slug, "An artwork image");
   const context = await browser.newContext({ javaScriptEnabled: false, baseURL: test.info().project.use.baseURL });
   try {
     const page = await context.newPage();
-    await page.goto("/studio/login");
-    await page.getByLabel("Username").fill("e2e-owner");
-    await page.getByLabel("Password").fill("e2e-password");
-    await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page).toHaveURL(/\/studio$/);
-    await page.getByRole("link", { name: "New artwork" }).click();
-    await expect(page.getByRole("button", { name: "Create draft" })).toBeVisible();
+    await page.goto("/");
+    await page.locator(`a[href="/artwork/${slug}"]`).click();
+    await expect(page).toHaveTitle(`${slug} | ${siteName}`);
+    await expect(page.getByRole("img", { name: "An artwork image" })).toBeVisible();
     await page.getByRole("navigation").getByRole("link", { name: siteName, exact: true }).click();
     await expect(page).toHaveTitle(siteName);
   } finally {

@@ -17,12 +17,10 @@ FROM rust:1.94-bookworm AS builder
 WORKDIR /app
 
 COPY Cargo.toml Cargo.lock ./
-COPY louvre-auth/Cargo.toml louvre-auth/Cargo.toml
 COPY louvre-cli/Cargo.toml louvre-cli/Cargo.toml
 COPY louvre-site/Cargo.toml louvre-site/Cargo.toml
 COPY louvre-storage/Cargo.toml louvre-storage/Cargo.toml
 COPY louvre-tw-merge/Cargo.toml louvre-tw-merge/Cargo.toml
-COPY louvre-auth louvre-auth
 COPY louvre-cli louvre-cli
 COPY louvre-site louvre-site
 COPY louvre-storage louvre-storage

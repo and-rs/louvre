@@ -12,13 +12,10 @@ aws-login:
 migrate:
   @cargo run -p louvre-cli -- migrate
 
-# Prompt for studio admin credentials and configure the linked Railway app.
-railway-admin:
-  ./scripts/set-railway-admin.sh
-
-# Prompt for studio admin credentials and save them to the ignored local .env.
-local-admin:
-  @cargo run -p louvre-cli -- admin local
+# Manage artwork locally with the CLI.
+[positional-arguments]
+artwork *args:
+  @cargo run -p louvre-cli -- artwork "$@"
 
 # Copy missing artwork records from linked Railway PostgreSQL over SSH into local PostgreSQL.
 dev-import-artworks:
@@ -37,7 +34,7 @@ e2e-install:
   npm ci
   npx playwright install chromium
 
-# Run the Studio publishing flow in Chromium against isolated PostgreSQL and S3 test services.
+# Test CLI publishing and the public gallery against isolated services.
 e2e:
   bash scripts/e2e.sh test
 

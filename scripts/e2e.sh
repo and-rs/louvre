@@ -48,12 +48,11 @@ export AWS_REGION=us-east-1
 export AWS_ACCESS_KEY_ID=e2e
 export AWS_SECRET_ACCESS_KEY=e2e
 export AWS_EC2_METADATA_DISABLED=true
-unset AWS_PROFILE AWS_DEFAULT_PROFILE || true
-export STUDIO_USERNAME=e2e-owner
-export STUDIO_PASSWORD_HASH='$argon2id$v=19$m=19456,t=2,p=1$cALHoRXElPrrfe9XXlOiuw$G8hjD5xiViSm5543nacL3X1nf/64VcAlytxG2P3xkqc'
+unset AWS_PROFILE AWS_DEFAULT_PROFILE RAILWAY_ENVIRONMENT_ID || true
 
 tailwindcss -i louvre-site/src/static/css/input.css -o louvre-site/src/static/css/site.css --silent
-cargo run -p louvre-cli -- migrate
+cargo build -p louvre-cli
+target/debug/louvre migrate
 
 if [[ "$mode" == "serve" ]]; then
   node e2e/s3-mock.mjs &
@@ -62,7 +61,6 @@ if [[ "$mode" == "serve" ]]; then
   target/debug/louvre-server &
   app_pid=$!
   printf 'E2E site: http://127.0.0.1:%s\n' "$PORT"
-  printf 'Studio login: %s / e2e-password\n' "$STUDIO_USERNAME"
   printf 'Test database, local uploads, and read-only S3 fixture are isolated; press Ctrl-C to stop.\n'
   wait "$app_pid"
 else

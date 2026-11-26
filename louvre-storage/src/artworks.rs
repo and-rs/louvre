@@ -59,6 +59,17 @@ pub struct ArtworkImageInput<'a> {
 const ARTWORK_COLUMNS: &str =
     "slug, title, description, collection, medium, collection_number, status, images";
 
+pub fn valid_slug(slug: &str) -> bool {
+    !slug.is_empty()
+        && slug.len() <= 100
+        && !slug.starts_with('-')
+        && !slug.ends_with('-')
+        && !slug.contains("--")
+        && slug
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+}
+
 pub async fn create_draft(pool: &PgPool, details: &ArtworkDetails) -> Result<Artwork, sqlx::Error> {
     let query = format!(
         "INSERT INTO artworks (title, slug, description, collection, medium, collection_number) \
@@ -259,4 +270,17 @@ pub async fn publish_artwork(pool: &PgPool, slug: &str) -> Result<Option<Artwork
         .bind(slug)
         .fetch_optional(pool)
         .await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::valid_slug;
+
+    #[test]
+    fn validates_public_slugs() {
+        assert!(valid_slug("quiet-study-2"));
+        for slug in ["Quiet-study", "-quiet", "quiet--study", "quiet/study"] {
+            assert!(!valid_slug(slug));
+        }
+    }
 }

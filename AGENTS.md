@@ -23,7 +23,7 @@
 - Always vendor JavaScript libraries locally; never load them from a CDN. Pin htmx to version 4.0.1 or newer, never below 4.0.1.
 - htmx boosts same-origin navigation links and swaps `<main>` from full-page HTML responses. The pinned library is vendored in `louvre-site/src/static/js/`; use explicit `:inherited` attributes for shared navigation settings.
 - Link to HTML pages only. Raw assets (images, ZIPs, downloads) must carry `hx-boost="false"`, or open via `target="_blank"` / `download`.
-- Keep Studio forms opted out with `hx-boost="false"` unless explicitly implementing partial submissions. Keep htmx's server-refetched history; do not add a history-cache extension that could snapshot private Studio content.
+- Keep htmx's server-refetched history; do not add a history-cache extension.
 - Images are embedded with `<img src=...>`, never as click targets of bare asset URLs.
 
 ## UI Verification

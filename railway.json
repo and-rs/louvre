@@ -7,7 +7,6 @@
       "Cargo.toml",
       "Dockerfile",
       "railway.json",
-      "louvre-auth/**",
       "louvre-cli/**",
       "louvre-site/**",
       "louvre-storage/**",

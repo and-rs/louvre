@@ -2,8 +2,6 @@
 
 ## in simple words
 
-- [ ] de-slopify latest auth and SQLx setup
-- [ ] test security paths for /studio login
 - [ ] upload first test artwork
 
 ## 1. Local-First Foundation

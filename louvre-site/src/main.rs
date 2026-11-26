@@ -2,16 +2,13 @@ mod assets;
 mod branding;
 mod routes;
 mod templates;
-use axum::{Router, extract::DefaultBodyLimit, routing::get, routing::post};
-use axum_login::{AuthManagerLayerBuilder, login_required};
+use axum::{Router, routing::get};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::net::TcpListener;
-use tokio::task::AbortHandle;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 
 use crate::routes::AppState;
-use louvre_auth::StudioBackend;
 use louvre_storage::{Storage, postgres_pool};
 
 #[cfg(feature = "dev")]
@@ -64,71 +61,9 @@ async fn main() {
     let database = postgres_pool(&database_url)
         .await
         .expect("failed to connect to PostgreSQL");
-    let studio_backend = StudioBackend::from_env();
-    if !studio_backend.is_configured() {
-        tracing::warn!(
-            "studio sign-in is unavailable; set STUDIO_USERNAME and STUDIO_PASSWORD_HASH"
-        );
-    }
-    let state = Arc::new(AppState {
-        storage,
-        database: database.clone(),
-    });
-
-    let session_store = louvre_auth::session_store(database.clone());
-    let session_cleanup = louvre_auth::spawn_session_cleanup(session_store.clone());
-    let session_layer = louvre_auth::session_layer(session_store, !cfg!(feature = "dev"));
-    let auth_layer = AuthManagerLayerBuilder::new(studio_backend, session_layer).build();
-
-    let studio_routes = Router::new()
-        .route("/studio", get(routes::studio))
-        .route("/studio/logout", post(routes::studio_logout))
-        .route("/studio/artworks/new", get(routes::studio_new))
-        .route(
-            "/studio/artworks",
-            post(routes::studio_create).layer(DefaultBodyLimit::max(routes::UPLOAD_BODY_LIMIT)),
-        )
-        .route(
-            "/studio/artworks/{slug}",
-            get(routes::studio_artwork).post(routes::studio_update),
-        )
-        .route(
-            "/studio/artworks/{slug}/thumbnail",
-            get(routes::studio_thumbnail),
-        )
-        .route(
-            "/studio/artworks/{slug}/images/{position}/thumbnail",
-            get(routes::studio_image_thumbnail),
-        )
-        .route(
-            "/studio/artworks/{slug}/images",
-            post(routes::studio_upload_image)
-                .layer(DefaultBodyLimit::max(routes::UPLOAD_BODY_LIMIT)),
-        )
-        .route(
-            "/studio/artworks/{slug}/images/{position}/alt-text",
-            post(routes::studio_update_image_alt_text),
-        )
-        .route(
-            "/studio/artworks/{slug}/images/{position}/move",
-            post(routes::studio_move_image),
-        )
-        .route(
-            "/studio/artworks/{slug}/images/{position}/delete",
-            post(routes::studio_delete_image),
-        )
-        .route(
-            "/studio/artworks/{slug}/publish",
-            post(routes::studio_publish),
-        )
-        .route_layer(login_required!(StudioBackend, login_url = "/studio/login"));
+    let state = Arc::new(AppState { storage, database });
 
     let app = Router::new()
-        .merge(studio_routes)
-        .route(
-            "/studio/login",
-            get(routes::studio_login).post(routes::studio_login_submit),
-        )
         .route("/", get(routes::home))
         .route("/artwork/{id}", get(routes::artwork))
         .route("/artwork/{id}/image/{file}", get(routes::artwork_image))
@@ -136,7 +71,6 @@ async fn main() {
         .fallback(routes::not_found)
         .nest_service("/static", static_files)
         .layer(TraceLayer::new_for_http())
-        .layer(auth_layer)
         .with_state(state);
 
     #[cfg(feature = "dev")]
@@ -152,13 +86,12 @@ async fn main() {
         .expect("local port 3000 must be available");
     tracing::info!(%address, "listening");
     axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal(session_cleanup.abort_handle()))
+        .with_graceful_shutdown(shutdown_signal())
         .await
         .expect("server failed");
-    session_cleanup.abort();
 }
 
-async fn shutdown_signal(session_cleanup: AbortHandle) {
+async fn shutdown_signal() {
     let ctrl_c = async {
         tokio::signal::ctrl_c()
             .await
@@ -177,8 +110,8 @@ async fn shutdown_signal(session_cleanup: AbortHandle) {
     let terminate = std::future::pending::<()>();
 
     tokio::select! {
-        _ = ctrl_c => { session_cleanup.abort(); },
-        _ = terminate => { session_cleanup.abort(); },
+        _ = ctrl_c => {},
+        _ = terminate => {},
     }
 
     tracing::info!("shutdown signal received");

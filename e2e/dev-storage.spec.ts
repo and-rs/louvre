@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { execFileSync } from "node:child_process";
+import { artwork } from "./artwork-cli";
 
 test("dev reads existing S3 images without writing or deleting them", async ({ page, request }) => {
   const key = "artworks/s3-reference/test.png";
@@ -26,16 +27,9 @@ test("dev reads existing S3 images without writing or deleting them", async ({ p
   await page.goto("/artwork/s3-published");
   await expect(page.getByRole("img", { name: "Existing S3 artwork" })).toHaveJSProperty("naturalWidth", 1);
 
-  await page.goto("/studio/login");
-  await page.getByLabel("Username").fill("e2e-owner");
-  await page.getByLabel("Password").fill("e2e-password");
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/studio$/);
-  await page.goto("/studio/artworks/s3-draft");
-  await expect(page.locator("[data-image-position='0'] img")).toHaveJSProperty("naturalWidth", 1);
-  page.once("dialog", (dialog) => dialog.accept());
-  await page.getByRole("button", { name: "Remove", exact: true }).click();
-  await expect(page.locator("[data-image-position]")).toHaveCount(0);
+  expect(artwork("show", "s3-draft")).toContain(key);
+  artwork("remove-image", "s3-draft", "1");
+  expect(artwork("show", "s3-draft")).not.toContain(key);
 
   const remoteImage = await request.get(`${process.env.S3_ENDPOINT_URL}/louvre-e2e/${key}`);
   expect(remoteImage.status()).toBe(200);

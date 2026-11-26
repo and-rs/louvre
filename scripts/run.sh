@@ -65,7 +65,6 @@ tailwindcss -i "$css_input" -o "$css_output" --silent
 # Regenerate styles before restarting Axum; ignore generated CSS to avoid a watch loop.
 cargo watch -d 0.2 \
   -w Cargo.toml -w Cargo.lock \
-  -w louvre-auth/Cargo.toml -w louvre-auth/src \
   -w louvre-site/Cargo.toml -w louvre-site/src \
   -w louvre-storage/Cargo.toml -w louvre-storage/src \
   -i "$css_output" \

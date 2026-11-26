@@ -14,12 +14,6 @@ const server = createServer(async (request, response) => {
     response.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ mutations }));
     return;
   }
-  if (request.method !== "GET") {
-    mutations++;
-    response.writeHead(405).end();
-    return;
-  }
-
   const [, bucket, ...keyParts] = url.pathname.split("/");
   const key = keyParts.join("/");
   if (!bucket || !key) {
@@ -27,6 +21,21 @@ const server = createServer(async (request, response) => {
     return;
   }
   const storageKey = `${bucket}/${key}`;
+  if (request.method === "PUT" && bucket === "louvre-e2e-railway") {
+    const chunks = [];
+    for await (const chunk of request) chunks.push(chunk);
+    objects.set(storageKey, {
+      body: Buffer.concat(chunks),
+      contentType: request.headers["content-type"],
+    });
+    response.writeHead(200, { etag: '"e2e"' }).end();
+    return;
+  }
+  if (request.method !== "GET") {
+    mutations++;
+    response.writeHead(405).end();
+    return;
+  }
 
   const object = objects.get(storageKey);
   if (!object) {
