@@ -20,15 +20,18 @@ const ASSETS: &[(&str, &str)] = &[
 
 fn main() {
     println!("cargo:rerun-if-env-changed=CARGO_FEATURE_DEV");
+    println!("cargo:rerun-if-env-changed=LOUVRE_USE_MOLD");
     let development = env::var_os("CARGO_FEATURE_DEV").is_some();
-    let apple_linker = "/Library/Developer/CommandLineTools/usr/bin/ld";
     if development
-        && cfg!(target_os = "macos")
         && env::var_os("HOST") == env::var_os("TARGET")
         && env::var("PROFILE").as_deref() == Ok("debug")
-        && Path::new(apple_linker).is_file()
     {
-        println!("cargo:rustc-link-arg-bin=louvre-server=--ld-path={apple_linker}");
+        let apple_linker = "/Library/Developer/CommandLineTools/usr/bin/ld";
+        if cfg!(target_os = "macos") && Path::new(apple_linker).is_file() {
+            println!("cargo:rustc-link-arg-bin=louvre-server=--ld-path={apple_linker}");
+        } else if cfg!(target_os = "linux") && env::var("LOUVRE_USE_MOLD").as_deref() == Ok("1") {
+            println!("cargo:rustc-link-arg-bin=louvre-server=-fuse-ld=mold");
+        }
     }
     let mut output = String::new();
 

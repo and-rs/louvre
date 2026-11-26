@@ -87,7 +87,7 @@
               prek
               git
               postgresql_17
-            ];
+            ] ++ pkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.mold ];
             shellHook = ''
               export PREK_COLOR=never
               export PREK_QUIET=1
@@ -96,6 +96,8 @@
               export TF_VAR_target_region="$REGION"
               export AWS_DEFAULT_REGION="$REGION"
               export AWS_REGION="$REGION"
+            '' + pkgs.lib.optionalString pkgs.stdenv.isLinux ''
+              export LOUVRE_USE_MOLD=1
             '';
           };
         }
