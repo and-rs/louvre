@@ -9,7 +9,7 @@ const AND_RS_GITHUB_URL: &str = "https://github.com/and-rs";
 
 pub fn footer() -> Markup {
     html! {
-        div class="rounded-lg border p-2 shadow-sm backdrop-blur" {
+        div class="mb-16 rounded-lg border p-2 shadow-sm backdrop-blur" {
             div class="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between" {
                 div class="max-w-sm px-2" {
                     a class="text-base font-semibold tracking-tight" href="/" { (site_name()) }
